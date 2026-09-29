@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model HealthMetric {
+  id               String   @id @default(uuid())
+  date             DateTime @unique
+  steps            Int?
+  caloriesBurned   Int?
+  sleepHours       Float?
+  restingHeartRate Float?
+  cardioSessions   Int      @default(0)
+  cardioMinutes    Int      @default(0)
+  strengthSessions Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model WeightLog {
+  id        String   @id @default(uuid())
+  date      DateTime @unique
+  weightLbs Float
+  createdAt DateTime @default(now())
+}
+
+model BodyMeasurement {
+  id        String   @id @default(uuid())
+  date      DateTime @unique
+  chest     Float?
+  waist     Float?
+  biceps    Float?
+  createdAt DateTime @default(now())
+}
+
+model Goal {
+  id           String   @id @default(uuid())
+  metricName   String   @unique // e.g. "Weight", "Chest", "Waist", "Biceps", "StrengthSessions"
+  targetValue  Float
+  updatedAt    DateTime @updatedAt
+}
+
+model Settings {
+  id                   String   @id @default("global")
+  setupComplete        Boolean  @default(false)
+  withingsClientId     String?
+  withingsClientSecret String?
+  withingsRefreshToken String?
+  withingsAccessToken  String?
+  withingsTokenExpiresAt Int?
+}

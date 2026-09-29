@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  healthhud:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthhud
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:./dev.db
+      - NODE_ENV=production
+    volumes:
+      - ./data:/app/prisma
+      - ./backups:/backups
+    restart: unless-stopped
