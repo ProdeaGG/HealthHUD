@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HealthHUD
 
-## Getting Started
+HealthHUD is a comprehensive, locally-hosted dashboard for aggregating, visualizing, and gamifying your personal health data. It supports automated data ingestion from Apple Health (via Health Auto Export) and Withings smart scales.
 
-First, run the development server:
+## 🚀 One-Line Installation (CasaOS / Ubuntu)
 
+The absolute easiest way to install HealthHUD on a fresh server or CasaOS environment is via our automated install script.
+
+Open your server's Terminal and run:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+curl -sSL https://raw.githubusercontent.com/ProdeaGG/HealthHUD/main/install.sh | bash
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**What this script does:**
+1. Automatically creates the `/DATA/AppData/HealthHUD` folder.
+2. Clones the latest version of the repository from GitHub.
+3. Automatically builds and launches the Docker container in the background.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+*Once installed, the app will appear on your CasaOS dashboard. (If clicking the icon doesn't open the page, click the 3 dots on the app > Settings > and set the Web UI port to `3000`).*
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔄 How to Update
+To update to the latest version of HealthHUD without losing any of your data, simply run the exact same `curl` command above! The script will automatically detect your existing installation, pull the newest code, and restart the server while keeping your SQLite database perfectly intact.
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## ⚙️ Manual Docker Installation
+If you prefer to install manually via Docker Compose:
+1. `git clone https://github.com/ProdeaGG/HealthHUD.git`
+2. `cd HealthHUD`
+3. `docker compose up -d --build`
