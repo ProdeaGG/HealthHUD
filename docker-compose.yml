@@ -9,7 +9,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=file:./dev.db
+      - DATABASE_URL=file:/app/prisma/dev.db
       - NODE_ENV=production
     volumes:
       - ./data:/app/prisma
