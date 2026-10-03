@@ -20,9 +20,9 @@ if [ -d "$INSTALL_DIR" ]; then
     cd "$INSTALL_DIR"
     
     # Stash any local changes just in case, pull, and pop
-    git stash
-    git pull origin main
-    git stash pop || true
+    sudo git stash
+    sudo git pull origin main
+    sudo git stash pop || true
 else
     echo "Cloning HealthHUD repository to $INSTALL_DIR..."
     sudo mkdir -p /DATA/AppData
