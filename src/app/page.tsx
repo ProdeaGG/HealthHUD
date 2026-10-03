@@ -11,8 +11,11 @@ export default function Dashboard() {
   // Modal States
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [showGlobalSettingsModal, setShowGlobalSettingsModal] = useState(false);
+  const [showManualWeightModal, setShowManualWeightModal] = useState(false);
   
-  // Goal Form State
+  // State
+  const [settings, setSettings] = useState<any>({});
+  const [manualWeightForm, setManualWeightForm] = useState({ date: new Date().toISOString().split('T')[0], weight: '' });
   const [goalForm, setGoalForm] = useState({ chest: '', waist: '', biceps: '', strength: '' });
 
   useEffect(() => {
@@ -21,6 +24,7 @@ export default function Dashboard() {
         // Check setup status first
         const setupRes = await fetch('/api/setup');
         const setupData = await setupRes.json();
+        setSettings(setupData);
         
         if (!setupData.setupComplete) {
           router.push('/setup');
@@ -76,6 +80,19 @@ export default function Dashboard() {
           })
       });
       setShowGoalModal(false);
+      window.location.reload();
+  };
+
+  const handleSaveManualWeight = async () => {
+      await fetch('/api/weight', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              date: manualWeightForm.date,
+              weightLbs: manualWeightForm.weight
+          })
+      });
+      setShowManualWeightModal(false);
       window.location.reload();
   };
 
@@ -136,6 +153,17 @@ export default function Dashboard() {
                         </div>
                     )}
                 </div>
+            </div>
+            
+            <div className="flex justify-center mt-2">
+                {settings?.allowManualWeight !== false && (
+                    <button 
+                        onClick={() => setShowManualWeightModal(true)}
+                        className="text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white hover:bg-black/20 px-3 py-1 rounded transition-colors"
+                    >
+                        + Manual Weight Entry
+                    </button>
+                )}
             </div>
             
             <div className="flex justify-between items-center mt-4 lg:mt-6 px-2 lg:px-4 text-base lg:text-lg font-semibold relative">
@@ -326,6 +354,28 @@ export default function Dashboard() {
                           </div>
                       </div>
 
+                      {/* Section 2.5: Feature Toggles */}
+                      <div className="bg-gray-900 p-4 rounded border border-gray-700 shadow-inner">
+                          <h3 className="text-xl font-semibold mb-2 text-orange-300">Feature Toggles</h3>
+                          <label className="flex items-center space-x-3 cursor-pointer">
+                              <input 
+                                  type="checkbox" 
+                                  className="w-5 h-5 text-orange-500 rounded focus:ring-orange-500 border-gray-600 bg-gray-700"
+                                  checked={settings?.allowManualWeight !== false}
+                                  onChange={async (e) => {
+                                      const newVal = e.target.checked;
+                                      setSettings({ ...settings, allowManualWeight: newVal });
+                                      await fetch('/api/setup', {
+                                          method: 'POST',
+                                          headers: { 'Content-Type': 'application/json' },
+                                          body: JSON.stringify({ allowManualWeight: newVal })
+                                      });
+                                  }}
+                              />
+                              <span className="text-gray-300 text-sm font-medium">Enable Manual Weight Entry Button on Dashboard</span>
+                          </label>
+                      </div>
+
                       {/* Section 3: V2 Features Placeholder */}
                       <div className="bg-gray-900 p-4 rounded border border-gray-700 opacity-60 shadow-inner">
                           <h3 className="text-xl font-semibold mb-2 text-pink-300">V2 Dashboard Themes</h3>
@@ -368,6 +418,31 @@ export default function Dashboard() {
                       </div>
                       <button onClick={handleSaveGoals} className="w-full bg-blue-500 hover:bg-blue-400 text-white font-bold py-4 rounded mt-4 transition-colors shadow-lg shadow-blue-500/20">
                           Save & Update
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* Manual Weight Modal */}
+      {showManualWeightModal && (
+          <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+              <div className="bg-orange-900 text-white rounded-lg shadow-[0_0_40px_rgba(239,156,63,0.3)] border-2 border-orange-400 p-6 lg:p-8 max-w-md w-full">
+                  <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-2xl font-bold text-orange-200">Manual Weight Entry</h2>
+                      <button onClick={() => setShowManualWeightModal(false)} className="text-orange-200 hover:text-white text-3xl leading-none">&times;</button>
+                  </div>
+                  <div className="space-y-5">
+                      <div>
+                          <label className="block text-sm font-semibold mb-2">Date</label>
+                          <input type="date" value={manualWeightForm.date} onChange={e => setManualWeightForm({...manualWeightForm, date: e.target.value})} className="w-full bg-black/40 border border-orange-500 rounded p-3 text-white outline-none focus:border-orange-300" />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-semibold mb-2">Weight (lbs)</label>
+                          <input type="number" step="0.1" value={manualWeightForm.weight} onChange={e => setManualWeightForm({...manualWeightForm, weight: e.target.value})} className="w-full bg-black/40 border border-orange-500 rounded p-3 text-white outline-none focus:border-orange-300" placeholder="e.g. 185.2" />
+                      </div>
+                      <button onClick={handleSaveManualWeight} className="w-full bg-orange-500 hover:bg-orange-400 text-white font-bold py-4 rounded mt-4 transition-colors shadow-lg shadow-orange-500/20">
+                          Save Weight Entry
                       </button>
                   </div>
               </div>

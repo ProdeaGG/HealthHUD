@@ -35,10 +35,11 @@ export default function SetupWizard() {
         const authUrl = `https://account.withings.com/oauth2_user/authorize2?response_type=code&client_id=${clientId}&state=${state}&scope=${scope}&redirect_uri=${redirectUri}`;
         window.location.href = authUrl;
       } else {
-        setStatus('Error saving credentials.');
+        const errorData = await res.json();
+        setStatus(`Error saving credentials: ${errorData.error}`);
       }
-    } catch (e) {
-      setStatus('Error saving credentials.');
+    } catch (e: any) {
+      setStatus(`Error saving credentials: ${e.message}`);
     }
   };
 
@@ -54,10 +55,11 @@ export default function SetupWizard() {
         setStatus('');
         setStep(4);
       } else {
-        setStatus('Error saving goals.');
+        const errorData = await res.json();
+        setStatus(`Error saving goals: ${errorData.error}`);
       }
-    } catch (e) {
-      setStatus('Error saving goals.');
+    } catch (e: any) {
+      setStatus(`Error saving goals: ${e.message}`);
     }
   };
 
@@ -71,9 +73,12 @@ export default function SetupWizard() {
       });
       if (res.ok) {
         window.location.href = '/';
+      } else {
+        const errorData = await res.json();
+        setStatus(`Error finalizing setup: ${errorData.error}`);
       }
-    } catch (e) {
-      setStatus('Error finalizing.');
+    } catch (e: any) {
+      setStatus(`Error finalizing: ${e.message}`);
     }
   };
 
@@ -122,7 +127,10 @@ export default function SetupWizard() {
             <button onClick={handleSaveWithings} className="w-full bg-[#ef9c3f] hover:bg-orange-500 text-white font-bold py-3 rounded uppercase tracking-wide">
               Connect to Withings
             </button>
-            {status && <p className="mt-4 text-center text-sm font-semibold text-red-400">{status}</p>}
+            <button onClick={() => setStep(3)} className="w-full mt-2 bg-gray-700 hover:bg-gray-600 text-gray-300 font-bold py-3 rounded uppercase tracking-wide text-sm">
+              Skip for Now
+            </button>
+            {status && <p className="mt-4 text-center text-sm font-semibold text-red-400 break-words">{status}</p>}
           </div>
         )}
 

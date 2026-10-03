@@ -52,4 +52,5 @@ model Settings {
   withingsRefreshToken String?
   withingsAccessToken  String?
   withingsTokenExpiresAt Int?
+  allowManualWeight    Boolean  @default(true)
 }
