@@ -7,7 +7,7 @@ echo "Starting backup daemon..."
 (
   while true; do
     DAY=$(date +%A)
-    cp /app/prisma/dev.db /backups/backup_${DAY}.db
+    cp /data/dev.db /backups/backup_${DAY}.db
     echo "Backup completed for ${DAY}"
     
     # Sleep for 24 hours (86400 seconds) before next backup
