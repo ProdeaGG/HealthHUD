@@ -48,8 +48,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modul
 COPY --from=builder /app/start.sh ./
 RUN chmod +x ./start.sh
 
-# Install prisma CLI to run db push on startup
-RUN npm install -g prisma
+# Install prisma CLI to run db push on startup.
+# MUST match the @prisma/client version in package.json — newer major versions
+# reject our schema format and silently fail to create tables.
+RUN npm install -g prisma@5.22.0
 
 # Expose port
 EXPOSE 3000

@@ -1,19 +1,34 @@
 #!/bin/sh
-echo "Running database migrations..."
-npx prisma db push --accept-data-loss
+set -e
 
-echo "Starting backup daemon..."
-# Run a background loop that copies dev.db every 24 hours to maintain a 7-day rolling backup
+echo "====================================================="
+echo " HealthHUD container starting"
+echo "====================================================="
+
+# Make sure the persistent data folder exists
+mkdir -p /data /backups
+
+echo "[1/3] Creating / updating database tables at /data/dev.db ..."
+# Use the global Prisma CLI pinned in the Dockerfile (must match @prisma/client).
+# --skip-generate: the client was already generated at build time.
+if prisma db push --schema ./prisma/schema.prisma --skip-generate --accept-data-loss; then
+  echo "      Database ready."
+else
+  echo "!!! DATABASE SETUP FAILED - the app cannot save anything until this is fixed."
+  echo "!!! Copy the error above and share it."
+  exit 1
+fi
+
+echo "[2/3] Starting backup daemon (daily copy to /backups)..."
 (
   while true; do
     DAY=$(date +%A)
-    cp /data/dev.db /backups/backup_${DAY}.db
-    echo "Backup completed for ${DAY}"
-    
-    # Sleep for 24 hours (86400 seconds) before next backup
+    if [ -f /data/dev.db ]; then
+      cp /data/dev.db "/backups/backup_${DAY}.db" && echo "Backup completed for ${DAY}"
+    fi
     sleep 86400
   done
 ) &
 
-echo "Starting Next.js server..."
+echo "[3/3] Starting HealthHUD web server on port ${PORT:-3000}..."
 exec node server.js

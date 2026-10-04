@@ -1,18 +1,19 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.1.0"
+VERSION="v1.1.1"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • Fixed database query engine compatibility for Linux (Alpine/Musl)."
-echo "  • Added 'Skip for Now' option on the Withings setup step."
-echo "  • Added Manual Weight Entry with a date picker on the dashboard."
-echo "  • Added a toggle in Settings to turn off manual weight entry."
-echo "  • Upgraded error messages so any future issue shows clear details."
+echo "  • FIXED: Database tables were never being created on startup,"
+echo "    which caused 'Error saving credentials'. Settings now save."
+echo "  • The app now refuses to start (with a clear message) if the"
+echo "    database can't be set up, instead of failing silently."
+echo "  • Withings can now verify your callback URL when registering."
+echo "  • Previous (v1.1.0): Skip button, Manual Weight Entry, toggle."
 echo "====================================================="
 echo ""
 
@@ -50,6 +51,11 @@ echo ""
 echo "Building and starting HealthHUD $VERSION containers..."
 echo "This may take 1-3 minutes..."
 sudo docker compose up -d --build
+
+echo ""
+echo "Waiting for HealthHUD to start, then showing its startup log..."
+sleep 8
+sudo docker logs --tail 25 healthhud || true
 
 echo ""
 echo "====================================================="

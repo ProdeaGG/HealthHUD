@@ -3,6 +3,11 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Withings sends a HEAD request to verify the callback URL is reachable when you register it.
+export async function HEAD() {
+  return new Response(null, { status: 200 });
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
