@@ -12,10 +12,17 @@ export default function Dashboard() {
   const [showGoalModal, setShowGoalModal] = useState(false);
   const [showGlobalSettingsModal, setShowGlobalSettingsModal] = useState(false);
   const [showManualWeightModal, setShowManualWeightModal] = useState(false);
+  const [showMeasurementModal, setShowMeasurementModal] = useState(false);
   
   // State
   const [settings, setSettings] = useState<any>({});
   const [manualWeightForm, setManualWeightForm] = useState({ date: new Date().toISOString().split('T')[0], weight: '' });
+  const [measurementForm, setMeasurementForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    chest: '',
+    waist: '',
+    biceps: ''
+  });
   const [goalForm, setGoalForm] = useState({ chest: '', waist: '', biceps: '', strength: '' });
 
   useEffect(() => {
@@ -93,6 +100,26 @@ export default function Dashboard() {
           })
       });
       setShowManualWeightModal(false);
+      window.location.reload();
+  };
+
+  const handleOpenMeasurementModal = () => {
+      setMeasurementForm({
+          date: new Date().toISOString().split('T')[0],
+          chest: data?.measurements?.find((m: any) => m.name === 'Chest')?.current || '',
+          waist: data?.measurements?.find((m: any) => m.name.includes('Waist'))?.current || '',
+          biceps: data?.measurements?.find((m: any) => m.name === 'Biceps')?.current || ''
+      });
+      setShowMeasurementModal(true);
+  };
+
+  const handleSaveMeasurement = async () => {
+      await fetch('/api/measurements', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(measurementForm)
+      });
+      setShowMeasurementModal(false);
       window.location.reload();
   };
 
@@ -201,8 +228,8 @@ export default function Dashboard() {
                     <p className="text-3xl lg:text-4xl font-bold leading-none">{data.consistency.cardioMinutes}</p>
                 </div>
                 <div className="flex-1">
-                    <p className="text-[10px] lg:text-xs mb-1 opacity-90">Avg Heart Rate</p>
-                    <p className="text-3xl lg:text-4xl font-bold leading-none">{Math.round(data.consistency.heartRateAvg)}</p>
+                    <p className="text-[10px] lg:text-xs mb-1 opacity-90">Cardio Avg HR</p>
+                    <p className="text-3xl lg:text-4xl font-bold leading-none">{data.consistency.heartRateAvg ? `${Math.round(data.consistency.heartRateAvg)}` : '-'}</p>
                 </div>
             </div>
         </div>
@@ -251,10 +278,23 @@ export default function Dashboard() {
         <div className="border-4 lg:border-0 lg:border-t-4 lg:border-l-4 border-[#333] flex flex-col justify-between p-3 lg:p-6" style={{ backgroundColor: '#75a3ed', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
             <div className="text-center pt-2 relative">
                 <h2 className="text-lg lg:text-2xl mb-2 lg:mb-4 font-semibold">Thicc Boy Measurements</h2>
-                {/* Settings Cogwheel */}
-                <button onClick={handleOpenGoalModal} className="absolute top-0 right-0 lg:right-2 text-xl lg:text-2xl opacity-70 hover:opacity-100 transition-opacity" title="Adjust Goals">
-                    ⚙️
-                </button>
+                {/* Actions: Log Measurement (+) & Adjust Goals (⚙️) */}
+                <div className="absolute top-0 right-0 lg:right-2 flex items-center space-x-2">
+                    <button 
+                        onClick={handleOpenMeasurementModal} 
+                        className="text-xl lg:text-2xl font-black bg-blue-700/50 hover:bg-blue-700 text-white rounded-md w-7 h-7 flex items-center justify-center opacity-85 hover:opacity-100 transition-all leading-none shadow-sm" 
+                        title="Log New Measurement"
+                    >
+                        +
+                    </button>
+                    <button 
+                        onClick={handleOpenGoalModal} 
+                        className="text-xl lg:text-2xl opacity-75 hover:opacity-100 transition-opacity" 
+                        title="Adjust Goals"
+                    >
+                        ⚙️
+                    </button>
+                </div>
             </div>
             
             <div className="w-full px-1 lg:px-6 mt-1 lg:mt-2">
@@ -434,6 +474,42 @@ export default function Dashboard() {
                       </div>
                       <button onClick={handleSaveManualWeight} className="w-full bg-orange-500 hover:bg-orange-400 text-white font-bold py-4 rounded mt-4 transition-colors shadow-lg shadow-orange-500/20">
                           Save Weight Entry
+                      </button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* Measurement Entry Modal */}
+      {showMeasurementModal && (
+          <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4">
+              <div className="bg-blue-950 text-white rounded-lg shadow-[0_0_40px_rgba(59,130,246,0.3)] border-2 border-blue-400 p-6 lg:p-8 max-w-md w-full">
+                  <div className="flex justify-between items-center mb-6">
+                      <div>
+                          <h2 className="text-2xl font-bold text-blue-200">Log Measurements</h2>
+                          <p className="text-xs text-blue-300/70 mt-1">Record your latest body tape measurements</p>
+                      </div>
+                      <button onClick={() => setShowMeasurementModal(false)} className="text-blue-200 hover:text-white text-3xl leading-none">&times;</button>
+                  </div>
+                  <div className="space-y-4">
+                      <div>
+                          <label className="block text-sm font-semibold mb-1">Date</label>
+                          <input type="date" value={measurementForm.date} onChange={e => setMeasurementForm({...measurementForm, date: e.target.value})} className="w-full bg-black/40 border border-blue-500 rounded p-3 text-white outline-none focus:border-blue-300" />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-semibold mb-1">Chest (inches)</label>
+                          <input type="number" step="0.1" value={measurementForm.chest} onChange={e => setMeasurementForm({...measurementForm, chest: e.target.value})} className="w-full bg-black/40 border border-blue-500 rounded p-3 text-white outline-none focus:border-blue-300" placeholder="e.g. 44.5" />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-semibold mb-1">Waist - Belly Button (inches)</label>
+                          <input type="number" step="0.1" value={measurementForm.waist} onChange={e => setMeasurementForm({...measurementForm, waist: e.target.value})} className="w-full bg-black/40 border border-blue-500 rounded p-3 text-white outline-none focus:border-blue-300" placeholder="e.g. 34.0" />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-semibold mb-1">Biceps (inches)</label>
+                          <input type="number" step="0.1" value={measurementForm.biceps} onChange={e => setMeasurementForm({...measurementForm, biceps: e.target.value})} className="w-full bg-black/40 border border-blue-500 rounded p-3 text-white outline-none focus:border-blue-300" placeholder="e.g. 16.0" />
+                      </div>
+                      <button onClick={handleSaveMeasurement} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded mt-4 transition-colors shadow-lg shadow-blue-500/20">
+                          Save Measurements
                       </button>
                   </div>
               </div>

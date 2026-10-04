@@ -1,20 +1,20 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.2.0"
+VERSION="v1.3.0"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • FIXED: Apple Health exports with sleep data were crashing the"
-echo "    save, so nothing showed up. Sleep is now read correctly."
-echo "  • FIXED: Days no longer shift to 'tomorrow' in the evening."
-echo "  • NEW: Dashboard footer shows the last Apple Health sync and"
-echo "    whether it succeeded (or the exact error)."
-echo "  • NEW: Open the webhook URL in Safari to test it's reachable."
-echo "  • REMOVED: 'Seed Dummy Data' button from the live dashboard."
+echo "  • NEW: Added '+' button on Thicc Boy Measurements to log"
+echo "    current measurements (Chest, Waist, Biceps) with date picker."
+echo "  • FIXED: Consistency tracker 'Cardio Avg HR' now strictly"
+echo "    measures heart rate during cardio sessions (running, walking,"
+echo "    treadmill, etc.) rather than whole-day resting heart rate."
+echo "  • Previous (v1.2.0): Sleep crash fix, local timezone dates,"
+echo "    Apple Health sync status footer, removed dummy seed button."
 echo "====================================================="
 echo ""
 

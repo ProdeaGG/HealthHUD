@@ -17,6 +17,7 @@ model HealthMetric {
   restingHeartRate Float?
   cardioSessions   Int      @default(0)
   cardioMinutes    Int      @default(0)
+  cardioHeartRateAvg Float?
   strengthSessions Int      @default(0)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

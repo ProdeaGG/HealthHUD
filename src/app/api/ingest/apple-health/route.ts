@@ -35,6 +35,8 @@ type Day = {
   hrCount: number;
   cardioSessions?: number;
   cardioMinutes?: number;
+  cardioHrSum: number;
+  cardioHrCount: number;
   strengthSessions?: number;
 };
 
@@ -95,7 +97,7 @@ export async function POST(request: Request) {
       const d = toDayDate(dateStr);
       if (!d) return null;
       const key = d.toISOString();
-      if (!days.has(key)) days.set(key, { date: d, hrSum: 0, hrCount: 0 });
+      if (!days.has(key)) days.set(key, { date: d, hrSum: 0, hrCount: 0, cardioHrSum: 0, cardioHrCount: 0 });
       return days.get(key)!;
     };
 
@@ -152,11 +154,18 @@ export async function POST(request: Request) {
       if (s && e && !isNaN(s.getTime()) && !isNaN(e.getTime())) minutes = (e.getTime() - s.getTime()) / 60000;
       else if (num(w?.duration) !== null) minutes = num(w.duration)! / 60; // v2: seconds
 
+      // Extract workout average heart rate if provided by HAE
+      const workoutHr = num(w?.avgHeartRate) ?? num(w?.avg_heart_rate) ?? num(w?.averageHeartRate) ?? num(w?.heartRate?.avg) ?? num(w?.heartRate) ?? num(w?.heart_rate?.avg) ?? num(w?.heart_rate);
+
       if (name.includes('strength') || name.includes('weight') || name.includes('functional') || name.includes('core')) {
         day.strengthSessions = (day.strengthSessions || 0) + 1;
       } else {
         day.cardioSessions = (day.cardioSessions || 0) + 1;
         day.cardioMinutes = (day.cardioMinutes || 0) + Math.round(minutes);
+        if (workoutHr && workoutHr > 40 && workoutHr < 240) {
+          day.cardioHrSum += workoutHr;
+          day.cardioHrCount += 1;
+        }
       }
       used['workouts'] = (used['workouts'] || 0) + 1;
     }
@@ -171,6 +180,7 @@ export async function POST(request: Request) {
       if (day.sleepHours !== undefined) data.sleepHours = parseFloat(day.sleepHours.toFixed(1));
       if (day.cardioSessions !== undefined) data.cardioSessions = day.cardioSessions;
       if (day.cardioMinutes !== undefined) data.cardioMinutes = day.cardioMinutes;
+      if (day.cardioHrCount > 0) data.cardioHeartRateAvg = Math.round(day.cardioHrSum / day.cardioHrCount);
       if (day.strengthSessions !== undefined) data.strengthSessions = day.strengthSessions;
       if (Object.keys(data).length === 0) continue;
 

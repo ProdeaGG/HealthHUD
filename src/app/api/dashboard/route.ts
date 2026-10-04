@@ -88,6 +88,12 @@ export async function GET() {
     }));
     const strengthDaysArray = [0, 1, 2, 3, 4, 5, 6].map(i => strengthMap.get(i) || false);
 
+    // Cardio Average Heart Rate (only from workouts classified as cardio)
+    const cardioMetricsWithHr = thisWeekMetrics.filter(m => (m.cardioHeartRateAvg || 0) > 0);
+    const cardioHrAvg = cardioMetricsWithHr.length > 0
+        ? Math.round(cardioMetricsWithHr.reduce((acc, m) => acc + (m.cardioHeartRateAvg || 0), 0) / cardioMetricsWithHr.length)
+        : null;
+
     // Payload to frontend
     const dashboardData = {
         lastSynced: {
@@ -110,7 +116,7 @@ export async function GET() {
             strengthSessions: thisWeekMetrics.reduce((acc, m) => acc + (m.strengthSessions || 0), 0),
             strengthTarget: getGoal('StrengthSessions') || 4,
             dailyBurnAvg: thisWeekMetrics.reduce((acc, m) => acc + (m.caloriesBurned || 0), 0) / (thisWeekMetrics.length || 1),
-            heartRateAvg: thisWeekMetrics.reduce((acc, m) => acc + (m.restingHeartRate || 0), 0) / (thisWeekMetrics.length || 1),
+            heartRateAvg: cardioHrAvg,
             cardioSessions: thisWeekMetrics.reduce((acc, m) => acc + (m.cardioSessions || 0), 0),
             cardioMinutes: thisWeekMetrics.reduce((acc, m) => acc + (m.cardioMinutes || 0), 0)
         },
