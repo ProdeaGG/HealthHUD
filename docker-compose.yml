@@ -10,6 +10,8 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      # Your local timezone, so "today" and weekly averages match your day.
+      - TZ=America/New_York
     volumes:
       - ./data:/data
       - ./backups:/backups

@@ -1,19 +1,20 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.1.2"
+VERSION="v1.2.0"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • FIXED: Withings login failing after clicking 'Allow' with a"
-echo "    'Wrong redirect_uri' error. HealthHUD now remembers the exact"
-echo "    address you connected from and reuses it."
-echo "  • Previous (v1.1.1): Database tables now created reliably;"
-echo "    startup stops with a clear message if the database fails."
-echo "  • Previous (v1.1.0): Skip button, Manual Weight Entry, toggle."
+echo "  • FIXED: Apple Health exports with sleep data were crashing the"
+echo "    save, so nothing showed up. Sleep is now read correctly."
+echo "  • FIXED: Days no longer shift to 'tomorrow' in the evening."
+echo "  • NEW: Dashboard footer shows the last Apple Health sync and"
+echo "    whether it succeeded (or the exact error)."
+echo "  • NEW: Open the webhook URL in Safari to test it's reachable."
+echo "  • REMOVED: 'Seed Dummy Data' button from the live dashboard."
 echo "====================================================="
 echo ""
 

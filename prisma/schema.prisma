@@ -55,4 +55,6 @@ model Settings {
   withingsTokenExpiresAt Int?
   withingsRedirectUri  String?
   allowManualWeight    Boolean  @default(true)
+  lastAppleSyncAt      DateTime?
+  lastAppleSyncStatus  String?
 }

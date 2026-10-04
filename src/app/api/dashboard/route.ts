@@ -5,14 +5,18 @@ const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
+    // Use the server's local calendar day (TZ set in docker-compose), stored as UTC midnight
+    // to match how the ingest endpoint saves dates.
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 
     const sevenDaysAgo = new Date(today);
-    sevenDaysAgo.setDate(today.getDate() - 6); // 7 days inclusive (today + 6 previous days)
+    sevenDaysAgo.setUTCDate(today.getUTCDate() - 6); // 7 days inclusive (today + 6 previous days)
 
     const fourteenDaysAgo = new Date(today);
-    fourteenDaysAgo.setDate(today.getDate() - 13); // 7 days prior to that
+    fourteenDaysAgo.setUTCDate(today.getUTCDate() - 13); // 7 days prior to that
+
+    const settings = await prisma.settings.findUnique({ where: { id: 'global' } });
 
     // 1. Get recent health metrics
     const recentMetrics = await prisma.healthMetric.findMany({
@@ -70,7 +74,7 @@ export async function GET() {
     // We want Mon=0, Tue=1, ..., Sun=6
     const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
     const sleepMap = new Map(thisWeekMetrics.map(m => {
-        let d = m.date.getDay();
+        let d = m.date.getUTCDay();
         d = d === 0 ? 6 : d - 1; // Convert to Mon=0, Sun=6
         return [d, m.sleepHours || 0];
     }));
@@ -78,7 +82,7 @@ export async function GET() {
 
     // Array for Strength workouts logic (Mon-Sun)
     const strengthMap = new Map(thisWeekMetrics.map(m => {
-        let d = m.date.getDay();
+        let d = m.date.getUTCDay();
         d = d === 0 ? 6 : d - 1; 
         return [d, (m.strengthSessions || 0) > 0]; 
     }));
@@ -87,7 +91,8 @@ export async function GET() {
     // Payload to frontend
     const dashboardData = {
         lastSynced: {
-            appleHealth: recentMetrics.length > 0 ? recentMetrics[recentMetrics.length - 1].updatedAt : null,
+            appleHealth: settings?.lastAppleSyncAt || (recentMetrics.length > 0 ? recentMetrics[recentMetrics.length - 1].updatedAt : null),
+            appleHealthStatus: settings?.lastAppleSyncStatus || null,
             withings: latestWeight?.createdAt || null
         },
         vitals: {

@@ -98,19 +98,6 @@ export default function Dashboard() {
 
   return (
     <div className="bg-gray-900 min-h-screen flex flex-col items-center justify-center p-4 md:p-8 font-sans text-white">
-      {/* Dev Only: Seed Data Button */}
-      <button 
-          onClick={async () => {
-              const btn = document.getElementById('seed-btn');
-              if (btn) btn.innerText = 'Seeding...';
-              await fetch('/api/test-seed', { method: 'POST' });
-              window.location.reload();
-          }}
-          id="seed-btn"
-          className="absolute top-2 left-2 z-50 bg-red-600/50 hover:bg-red-600 text-white text-[10px] uppercase tracking-widest px-3 py-1 rounded transition-colors"
-      >
-          Seed Dummy Data
-      </button>
       {/* Global Settings Button */}
       <button 
           onClick={() => setShowGlobalSettingsModal(true)}
@@ -303,7 +290,11 @@ export default function Dashboard() {
       
       {/* Last Synced Indicators */}
       <div className="w-full max-w-7xl mt-4 lg:mt-6 flex flex-col lg:flex-row justify-between text-xs text-gray-500 font-medium tracking-wide space-y-2 lg:space-y-0 text-center lg:text-left">
-          <div>Apple Health: <span className="text-gray-400">{data.lastSynced?.appleHealth ? new Date(data.lastSynced.appleHealth).toLocaleString() : 'Never'}</span></div>
+          <div>Apple Health: <span className="text-gray-400">{data.lastSynced?.appleHealth ? new Date(data.lastSynced.appleHealth).toLocaleString() : 'Never'}</span>
+              {data.lastSynced?.appleHealthStatus && (
+                  <span className={`block text-[10px] mt-1 ${data.lastSynced.appleHealthStatus.startsWith('OK') ? 'text-green-500' : 'text-red-400'}`}>{data.lastSynced.appleHealthStatus}</span>
+              )}
+          </div>
           <div>Withings: <span className="text-gray-400">{data.lastSynced?.withings ? new Date(data.lastSynced.withings).toLocaleString() : 'Never'}</span></div>
       </div>
 
