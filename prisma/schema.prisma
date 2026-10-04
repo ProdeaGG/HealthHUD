@@ -43,6 +43,7 @@ model Goal {
   id           String   @id @default(uuid())
   metricName   String   @unique // e.g. "Weight", "Chest", "Waist", "Biceps", "StrengthSessions"
   targetValue  Float
+  startValue   Float?
   updatedAt    DateTime @updatedAt
 }
 

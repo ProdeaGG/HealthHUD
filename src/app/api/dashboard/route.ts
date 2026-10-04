@@ -29,14 +29,18 @@ export async function GET() {
         orderBy: { date: 'desc' }
     });
 
-    // 3. Get latest body measurements
+    // 3. Get latest and earliest body measurements (for baseline progress tracking)
     const latestMeasurements = await prisma.bodyMeasurement.findFirst({
         orderBy: { date: 'desc' }
+    });
+    const earliestMeasurements = await prisma.bodyMeasurement.findFirst({
+        orderBy: { date: 'asc' }
     });
 
     // 4. Get Goals
     const goals = await prisma.goal.findMany();
     const getGoal = (name: string) => goals.find(g => g.metricName === name)?.targetValue || 0;
+    const getGoalObj = (name: string) => goals.find(g => g.metricName === name);
 
     // 5. Get recent workouts for current week breakdown
     let recentWorkouts: any[] = [];
@@ -171,13 +175,44 @@ export async function GET() {
             sleepData: sleepDataArray
         },
         measurements: [
-            { name: 'Chest', current: latestMeasurements?.chest || 0, goal: getGoal('Chest') },
-            { name: 'Waist (bb)', current: latestMeasurements?.waist || 0, goal: getGoal('Waist') },
-            { name: 'Biceps', current: latestMeasurements?.biceps || 0, goal: getGoal('Biceps') }
-        ].map(m => ({
-            ...m,
-            diff: Math.abs(m.current - m.goal).toFixed(1)
-        }))
+            { name: 'Chest', key: 'chest', goalName: 'Chest' },
+            { name: 'Waist (bb)', key: 'waist', goalName: 'Waist' },
+            { name: 'Biceps', key: 'biceps', goalName: 'Biceps' }
+        ].map(spec => {
+            const g = getGoalObj(spec.goalName);
+            const target = g?.targetValue || 0;
+            const current = (latestMeasurements as any)?.[spec.key] || 0;
+            const fallbackStart = (earliestMeasurements as any)?.[spec.key] || current;
+            const start = g?.startValue !== null && g?.startValue !== undefined ? g.startValue : fallbackStart;
+
+            const totalSpan = Math.abs(target - start);
+            let progressPercent = 0;
+
+            if (totalSpan > 0 && current > 0) {
+                let achieved = 0;
+                if (target < start) {
+                    // Cutting / reduction goal (e.g. Chest 53 -> 44)
+                    achieved = start - current;
+                } else {
+                    // Growth goal (e.g. Biceps 19 -> 22)
+                    achieved = current - start;
+                }
+                progressPercent = Math.max(0, Math.min(100, Math.round((achieved / totalSpan) * 100)));
+            } else if (current > 0 && target > 0 && current === target) {
+                progressPercent = 100;
+            }
+
+            return {
+                name: spec.name,
+                key: spec.key,
+                goalName: spec.goalName,
+                start: start || current,
+                current,
+                goal: target,
+                diff: Math.abs(current - target).toFixed(1),
+                progressPercent
+            };
+        })
     };
 
     return NextResponse.json(dashboardData);

@@ -23,7 +23,15 @@ export default function Dashboard() {
     waist: '',
     biceps: ''
   });
-  const [goalForm, setGoalForm] = useState({ chest: '', waist: '', biceps: '', strength: '' });
+  const [goalForm, setGoalForm] = useState({
+    chest: '',
+    chestStart: '',
+    waist: '',
+    waistStart: '',
+    biceps: '',
+    bicepsStart: '',
+    strength: ''
+  });
 
   // Floating Popover / Tooltip State
   const [hoverTooltip, setHoverTooltip] = useState<{
@@ -74,11 +82,17 @@ export default function Dashboard() {
   }
 
   const handleOpenGoalModal = () => {
+      const chestM = data?.measurements?.find((m: any) => m.name === 'Chest');
+      const waistM = data?.measurements?.find((m: any) => m.name.includes('Waist'));
+      const bicepsM = data?.measurements?.find((m: any) => m.name === 'Biceps');
       setGoalForm({
-          chest: data.measurements.find((m: any) => m.name === 'Chest')?.goal || '',
-          waist: data.measurements.find((m: any) => m.name.includes('Waist'))?.goal || '',
-          biceps: data.measurements.find((m: any) => m.name === 'Biceps')?.goal || '',
-          strength: data.consistency.strengthTarget || ''
+          chest: chestM?.goal || '',
+          chestStart: chestM?.start || '',
+          waist: waistM?.goal || '',
+          waistStart: waistM?.start || '',
+          biceps: bicepsM?.goal || '',
+          bicepsStart: bicepsM?.start || '',
+          strength: data?.consistency?.strengthTarget || ''
       });
       setShowGoalModal(true);
   };
@@ -89,9 +103,9 @@ export default function Dashboard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
               goals: {
-                  Chest: parseFloat(goalForm.chest),
-                  Waist: parseFloat(goalForm.waist),
-                  Biceps: parseFloat(goalForm.biceps),
+                  Chest: { target: parseFloat(goalForm.chest), start: parseFloat(goalForm.chestStart) },
+                  Waist: { target: parseFloat(goalForm.waist), start: parseFloat(goalForm.waistStart) },
+                  Biceps: { target: parseFloat(goalForm.biceps), start: parseFloat(goalForm.bicepsStart) },
                   StrengthSessions: parseInt(goalForm.strength)
               }
           })
@@ -373,7 +387,7 @@ export default function Dashboard() {
                 </div>
                 
                 {data.measurements.map((row: any, i: number) => {
-                    const percentToGoal = row.goal > 0 ? Math.min((row.goal / row.current) * 100, 100) : 0; 
+                    const percentToGoal = row.progressPercent !== undefined ? row.progressPercent : 0; 
                     return (
                         <div key={i} className="mb-2 lg:mb-3 bg-blue-400 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,0.3)]">
                             <div className="grid grid-cols-4 gap-0 text-black">
@@ -383,7 +397,10 @@ export default function Dashboard() {
                                 <div className="p-1 lg:p-2 text-center font-bold text-white bg-[#75a3ed] flex items-center justify-center text-xs lg:text-lg">{row.diff}</div>
                             </div>
                             {/* Distinct Progress Bar underneath stats */}
-                            <div className="w-full h-1 lg:h-2 bg-blue-900 border-t-2 border-black flex">
+                            <div 
+                                className="w-full h-1.5 lg:h-2.5 bg-blue-900 border-t-2 border-black flex relative" 
+                                title={`Start: ${row.start}", Current: ${row.current}", Goal: ${row.goal}" (${percentToGoal}% complete)`}
+                            >
                                 <div className="h-full bg-green-400 transition-all duration-500 border-r-2 border-black" style={{ width: `${percentToGoal}%` }}></div>
                             </div>
                         </div>
@@ -496,24 +513,107 @@ export default function Dashboard() {
                       <h2 className="text-2xl font-bold">Update Goals</h2>
                       <button onClick={() => setShowGoalModal(false)} className="text-blue-200 hover:text-white text-3xl leading-none">&times;</button>
                   </div>
-                  <div className="space-y-5">
-                      <div>
-                          <label className="block text-sm font-semibold mb-2">Chest Goal (in)</label>
-                          <input type="number" value={goalForm.chest} onChange={e => setGoalForm({...goalForm, chest: e.target.value})} className="w-full bg-black/40 border border-blue-500 rounded p-3 text-white outline-none focus:border-blue-300" />
+                  <div className="space-y-4">
+                      {/* Chest */}
+                      <div className="bg-blue-950/60 p-3.5 rounded-lg border border-blue-800">
+                          <span className="text-sm font-bold text-blue-200 block mb-2">Chest Measurement</span>
+                          <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                  <label className="block text-xs text-blue-300 mb-1">Starting Baseline (in)</label>
+                                  <input 
+                                      type="number" 
+                                      step="0.1" 
+                                      value={goalForm.chestStart} 
+                                      onChange={e => setGoalForm({...goalForm, chestStart: e.target.value})} 
+                                      placeholder="e.g. 53" 
+                                      className="w-full bg-black/40 border border-blue-600 rounded p-2.5 text-white text-sm outline-none focus:border-blue-300" 
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-xs text-blue-300 mb-1">Target Goal (in)</label>
+                                  <input 
+                                      type="number" 
+                                      step="0.1" 
+                                      value={goalForm.chest} 
+                                      onChange={e => setGoalForm({...goalForm, chest: e.target.value})} 
+                                      placeholder="e.g. 44" 
+                                      className="w-full bg-black/40 border border-blue-600 rounded p-2.5 text-white text-sm outline-none focus:border-blue-300" 
+                                  />
+                              </div>
+                          </div>
                       </div>
-                      <div>
-                          <label className="block text-sm font-semibold mb-2">Waist Goal (in)</label>
-                          <input type="number" value={goalForm.waist} onChange={e => setGoalForm({...goalForm, waist: e.target.value})} className="w-full bg-black/40 border border-blue-500 rounded p-3 text-white outline-none focus:border-blue-300" />
+
+                      {/* Waist */}
+                      <div className="bg-blue-950/60 p-3.5 rounded-lg border border-blue-800">
+                          <span className="text-sm font-bold text-blue-200 block mb-2">Waist Measurement</span>
+                          <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                  <label className="block text-xs text-blue-300 mb-1">Starting Baseline (in)</label>
+                                  <input 
+                                      type="number" 
+                                      step="0.1" 
+                                      value={goalForm.waistStart} 
+                                      onChange={e => setGoalForm({...goalForm, waistStart: e.target.value})} 
+                                      placeholder="e.g. 50" 
+                                      className="w-full bg-black/40 border border-blue-600 rounded p-2.5 text-white text-sm outline-none focus:border-blue-300" 
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-xs text-blue-300 mb-1">Target Goal (in)</label>
+                                  <input 
+                                      type="number" 
+                                      step="0.1" 
+                                      value={goalForm.waist} 
+                                      onChange={e => setGoalForm({...goalForm, waist: e.target.value})} 
+                                      placeholder="e.g. 36" 
+                                      className="w-full bg-black/40 border border-blue-600 rounded p-2.5 text-white text-sm outline-none focus:border-blue-300" 
+                                  />
+                              </div>
+                          </div>
                       </div>
-                      <div>
-                          <label className="block text-sm font-semibold mb-2">Biceps Goal (in)</label>
-                          <input type="number" value={goalForm.biceps} onChange={e => setGoalForm({...goalForm, biceps: e.target.value})} className="w-full bg-black/40 border border-blue-500 rounded p-3 text-white outline-none focus:border-blue-300" />
+
+                      {/* Biceps */}
+                      <div className="bg-blue-950/60 p-3.5 rounded-lg border border-blue-800">
+                          <span className="text-sm font-bold text-blue-200 block mb-2">Biceps Measurement</span>
+                          <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                  <label className="block text-xs text-blue-300 mb-1">Starting Baseline (in)</label>
+                                  <input 
+                                      type="number" 
+                                      step="0.1" 
+                                      value={goalForm.bicepsStart} 
+                                      onChange={e => setGoalForm({...goalForm, bicepsStart: e.target.value})} 
+                                      placeholder="e.g. 19" 
+                                      className="w-full bg-black/40 border border-blue-600 rounded p-2.5 text-white text-sm outline-none focus:border-blue-300" 
+                                  />
+                              </div>
+                              <div>
+                                  <label className="block text-xs text-blue-300 mb-1">Target Goal (in)</label>
+                                  <input 
+                                      type="number" 
+                                      step="0.1" 
+                                      value={goalForm.biceps} 
+                                      onChange={e => setGoalForm({...goalForm, biceps: e.target.value})} 
+                                      placeholder="e.g. 22" 
+                                      className="w-full bg-black/40 border border-blue-600 rounded p-2.5 text-white text-sm outline-none focus:border-blue-300" 
+                                  />
+                              </div>
+                          </div>
                       </div>
-                      <div>
-                          <label className="block text-sm font-semibold mb-2">Weekly Strength Sessions Goal</label>
-                          <input type="number" value={goalForm.strength} onChange={e => setGoalForm({...goalForm, strength: e.target.value})} className="w-full bg-black/40 border border-blue-500 rounded p-3 text-white outline-none focus:border-blue-300" />
+
+                      {/* Strength Sessions */}
+                      <div className="bg-blue-950/60 p-3.5 rounded-lg border border-blue-800">
+                          <label className="block text-sm font-bold text-blue-200 mb-1">Weekly Strength Sessions Goal</label>
+                          <input 
+                              type="number" 
+                              value={goalForm.strength} 
+                              onChange={e => setGoalForm({...goalForm, strength: e.target.value})} 
+                              placeholder="e.g. 3" 
+                              className="w-full bg-black/40 border border-blue-600 rounded p-2.5 text-white text-sm outline-none focus:border-blue-300" 
+                          />
                       </div>
-                      <button onClick={handleSaveGoals} className="w-full bg-blue-500 hover:bg-blue-400 text-white font-bold py-4 rounded mt-4 transition-colors shadow-lg shadow-blue-500/20">
+
+                      <button onClick={handleSaveGoals} className="w-full bg-blue-500 hover:bg-blue-400 text-white font-bold py-3.5 rounded mt-4 transition-colors shadow-lg shadow-blue-500/20">
                           Save & Update
                       </button>
                   </div>

@@ -8,13 +8,33 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     if (body.goals) {
-      // Save goals
-      for (const [metricName, targetValue] of Object.entries(body.goals)) {
-        if (!isNaN(targetValue as number)) {
+      // Save goals (supports number or { target, start })
+      for (const [metricName, val] of Object.entries(body.goals)) {
+        let targetValue: number | undefined;
+        let startValue: number | undefined;
+
+        if (typeof val === 'object' && val !== null) {
+          const t = parseFloat((val as any).target);
+          const s = parseFloat((val as any).start);
+          if (!isNaN(t)) targetValue = t;
+          if (!isNaN(s)) startValue = s;
+        } else {
+          const t = parseFloat(val as any);
+          if (!isNaN(t)) targetValue = t;
+        }
+
+        if (targetValue !== undefined) {
           await prisma.goal.upsert({
             where: { metricName },
-            update: { targetValue: targetValue as number },
-            create: { metricName, targetValue: targetValue as number }
+            update: {
+              targetValue,
+              startValue: startValue !== undefined ? startValue : undefined
+            },
+            create: {
+              metricName,
+              targetValue,
+              startValue: startValue !== undefined ? startValue : null
+            }
           });
         }
       }

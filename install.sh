@@ -1,20 +1,22 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.4.0"
+VERSION="v1.5.0"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • NEW: Floating session inspection tooltips! Hover over"
-echo "    'Cardio Sessions' to see a breakdown of all cardio workouts"
-echo "    this week (names, minutes, heart rate, calories)."
-echo "  • NEW: Hover over any day (M, T, W...) on the Strength tracker"
-echo "    to see what workout was logged for that specific day."
-echo "  • Previous (v1.3.0): Thicc Boy '+' measurement logging modal"
-echo "    and Cardio-specific average heart rate calculation."
+echo "  • NEW: Starting Baseline progress bars for Thicc Boy Measurements!"
+echo "    Progress bars now track your directional journey from Start to Goal,"
+echo "    so 3 inches left to grow on biceps or 9 inches to cut on chest"
+echo "    reflects true, accurate percentage completion."
+echo "  • NEW: Update Goals modal (⚙️) now includes side-by-side inputs"
+echo "    for both Starting Baseline and Target Goal for Chest, Waist, & Biceps."
+echo "  • NEW: Hover over any measurement progress bar to see exact breakdown:"
+echo "    Start baseline, Current measurement, Goal, and % complete."
+echo "  • Floating workout inspector tooltips on Cardio & Strength days."
 echo "====================================================="
 echo ""
 
