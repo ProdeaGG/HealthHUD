@@ -25,6 +25,16 @@ export default function Dashboard() {
   });
   const [goalForm, setGoalForm] = useState({ chest: '', waist: '', biceps: '', strength: '' });
 
+  // Floating Popover / Tooltip State
+  const [hoverTooltip, setHoverTooltip] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    title: string;
+    items: Array<{ title: string; subtitle?: string }>;
+    emptyText?: string;
+  } | null>(null);
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -209,18 +219,74 @@ export default function Dashboard() {
             
             <div className="w-full px-2 lg:px-6 mb-2 lg:mb-4">
                 <div className="flex justify-between items-end space-x-1 lg:space-x-2">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
-                        <div key={idx} className="flex flex-col items-center flex-1">
-                            <div className={`w-full h-2 rounded-sm mb-1 lg:mb-2 shadow-sm shadow-black/30 transition-colors ${data.consistency.strengthDays[idx] ? 'bg-green-400' : 'bg-red-500'}`}></div>
-                            <span className="text-xs lg:text-sm font-bold opacity-90 drop-shadow-md">{day}</span>
-                        </div>
-                    ))}
+                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => {
+                        const fullDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                        const dayWorkouts = data.consistency.strengthWorkoutsByDay?.[idx] || [];
+                        return (
+                            <div 
+                                key={idx} 
+                                className="flex flex-col items-center flex-1 cursor-pointer group py-1"
+                                onMouseEnter={(e) => {
+                                    const items = dayWorkouts.map((w: any) => ({
+                                        title: w.name || 'Strength Workout',
+                                        subtitle: [
+                                            w.durationMins ? `${w.durationMins} mins` : null,
+                                            w.avgHeartRate ? `${w.avgHeartRate} bpm` : null,
+                                            w.calories ? `${w.calories} kcal` : null
+                                        ].filter(Boolean).join(' • ')
+                                    }));
+                                    setHoverTooltip({
+                                        visible: true,
+                                        x: e.clientX,
+                                        y: e.clientY,
+                                        title: `${fullDays[idx]} Strength Workouts`,
+                                        items,
+                                        emptyText: data.consistency.strengthDays[idx] ? 'Strength workout logged for this day' : 'No strength workout recorded'
+                                    });
+                                }}
+                                onMouseMove={(e) => {
+                                    setHoverTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                                }}
+                                onMouseLeave={() => setHoverTooltip(null)}
+                            >
+                                <div className={`w-full h-2.5 rounded-sm mb-1 lg:mb-2 shadow-sm shadow-black/30 transition-all group-hover:scale-y-125 ${data.consistency.strengthDays[idx] ? 'bg-green-400' : 'bg-red-500'}`}></div>
+                                <span className="text-xs lg:text-sm font-bold opacity-90 drop-shadow-md group-hover:opacity-100">{day}</span>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
             <div className="flex justify-between text-center pb-0 lg:pb-2 px-1 lg:px-2">
-                <div className="flex-1">
-                    <p className="text-[10px] lg:text-xs mb-1 opacity-90">Cardio Sessions</p>
+                <div 
+                    className="flex-1 cursor-pointer hover:bg-black/15 transition-all rounded p-1"
+                    onMouseEnter={(e) => {
+                        const cardioList = data.consistency.cardioWorkouts || [];
+                        const items = cardioList.map((w: any) => ({
+                            title: `${w.name || 'Cardio'}${w.date ? ` • ${w.date}` : ''}`,
+                            subtitle: [
+                                w.durationMins ? `${w.durationMins} mins` : null,
+                                w.avgHeartRate ? `${w.avgHeartRate} bpm` : null,
+                                w.calories ? `${w.calories} kcal` : null
+                            ].filter(Boolean).join(' • ')
+                        }));
+                        setHoverTooltip({
+                            visible: true,
+                            x: e.clientX,
+                            y: e.clientY,
+                            title: 'Cardio Sessions This Week',
+                            items,
+                            emptyText: data.consistency.cardioSessions > 0
+                                ? `${data.consistency.cardioSessions} cardio session(s) logged this week`
+                                : 'No cardio sessions recorded this week'
+                        });
+                    }}
+                    onMouseMove={(e) => {
+                        setHoverTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                    }}
+                    onMouseLeave={() => setHoverTooltip(null)}
+                >
+                    <p className="text-[10px] lg:text-xs mb-1 opacity-90">Cardio Sessions ⓘ</p>
                     <p className="text-3xl lg:text-4xl font-bold leading-none">{data.consistency.cardioSessions}</p>
                 </div>
                 <div className="flex-1 border-x border-[#333]/30">
@@ -513,6 +579,38 @@ export default function Dashboard() {
                       </button>
                   </div>
               </div>
+          </div>
+      )}
+
+      {/* Floating Hover Tooltip / Popover attached to mouse */}
+      {hoverTooltip && hoverTooltip.visible && (
+          <div 
+              className="fixed pointer-events-none z-[9999] bg-gray-950/95 text-white border-2 border-gray-700 shadow-2xl rounded-lg p-3 text-xs min-w-[220px] max-w-xs transition-opacity duration-75 backdrop-blur-md"
+              style={{
+                  left: typeof window !== 'undefined' ? Math.min(hoverTooltip.x + 16, window.innerWidth - 250) : hoverTooltip.x + 16,
+                  top: typeof window !== 'undefined' ? Math.min(hoverTooltip.y + 16, window.innerHeight - 200) : hoverTooltip.y + 16
+              }}
+          >
+              <div className="font-bold text-gray-200 border-b border-gray-800 pb-1.5 mb-2 flex items-center justify-between">
+                  <span className="text-orange-400 font-bold">{hoverTooltip.title}</span>
+                  {hoverTooltip.items.length > 0 && (
+                      <span className="text-[10px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-normal ml-2">
+                          {hoverTooltip.items.length} {hoverTooltip.items.length === 1 ? 'session' : 'sessions'}
+                      </span>
+                  )}
+              </div>
+              {hoverTooltip.items.length > 0 ? (
+                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                      {hoverTooltip.items.map((item, i) => (
+                          <div key={i} className="bg-gray-900/90 p-2 rounded border border-gray-800">
+                              <div className="font-semibold text-white text-xs">{item.title}</div>
+                              {item.subtitle && <div className="text-orange-300/80 text-[11px] mt-0.5">{item.subtitle}</div>}
+                          </div>
+                      ))}
+                  </div>
+              ) : (
+                  <div className="text-gray-400 italic text-[11px] py-1">{hoverTooltip.emptyText}</div>
+              )}
           </div>
       )}
     </div>

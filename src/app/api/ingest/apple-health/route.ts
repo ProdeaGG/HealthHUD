@@ -146,7 +146,8 @@ export async function POST(request: Request) {
     for (const w of workouts) {
       const day = getDay(w?.start);
       if (!day) continue;
-      const name = String(w?.name || '').toLowerCase();
+      const rawName = String(w?.name || 'Workout');
+      const name = rawName.toLowerCase();
 
       let minutes = 0;
       const s = w?.start ? new Date(String(w.start).replace(' ', 'T').replace(/ ([+-]\d{2})(\d{2})$/, '$1:$2')) : null;
@@ -156,8 +157,12 @@ export async function POST(request: Request) {
 
       // Extract workout average heart rate if provided by HAE
       const workoutHr = num(w?.avgHeartRate) ?? num(w?.avg_heart_rate) ?? num(w?.averageHeartRate) ?? num(w?.heartRate?.avg) ?? num(w?.heartRate) ?? num(w?.heart_rate?.avg) ?? num(w?.heart_rate);
+      const cals = num(w?.activeEnergy) ?? num(w?.active_energy) ?? num(w?.calories) ?? num(w?.totalEnergyBurned);
 
-      if (name.includes('strength') || name.includes('weight') || name.includes('functional') || name.includes('core')) {
+      const isStrength = name.includes('strength') || name.includes('weight') || name.includes('functional') || name.includes('core');
+      const workoutType = isStrength ? 'strength' : 'cardio';
+
+      if (isStrength) {
         day.strengthSessions = (day.strengthSessions || 0) + 1;
       } else {
         day.cardioSessions = (day.cardioSessions || 0) + 1;
@@ -167,6 +172,36 @@ export async function POST(request: Request) {
           day.cardioHrCount += 1;
         }
       }
+
+      // Save individual workout record for detailed inspection/hover lists
+      try {
+        const extId = String(w?.id || w?.uuid || `${day.date.toISOString()}_${s ? s.toISOString() : ''}_${rawName}_${Math.round(minutes)}`);
+        await prisma.workout.upsert({
+          where: { externalId: extId },
+          update: {
+            date: day.date,
+            startTime: s && !isNaN(s.getTime()) ? s : null,
+            name: rawName,
+            type: workoutType,
+            durationMins: Math.round(minutes),
+            calories: cals ? Math.round(cals) : null,
+            avgHeartRate: workoutHr ? Math.round(workoutHr) : null,
+          },
+          create: {
+            externalId: extId,
+            date: day.date,
+            startTime: s && !isNaN(s.getTime()) ? s : null,
+            name: rawName,
+            type: workoutType,
+            durationMins: Math.round(minutes),
+            calories: cals ? Math.round(cals) : null,
+            avgHeartRate: workoutHr ? Math.round(workoutHr) : null,
+          }
+        });
+      } catch (err) {
+        console.error('[apple-health] Could not save individual workout:', err);
+      }
+
       used['workouts'] = (used['workouts'] || 0) + 1;
     }
 

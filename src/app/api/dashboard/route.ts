@@ -38,6 +38,18 @@ export async function GET() {
     const goals = await prisma.goal.findMany();
     const getGoal = (name: string) => goals.find(g => g.metricName === name)?.targetValue || 0;
 
+    // 5. Get recent workouts for current week breakdown
+    let recentWorkouts: any[] = [];
+    try {
+        recentWorkouts = await prisma.workout.findMany({
+            where: { date: { gte: sevenDaysAgo } },
+            orderBy: [{ date: 'asc' }, { startTime: 'asc' }]
+        });
+    } catch {
+        // Table might not exist yet if db push hasn't run
+        recentWorkouts = [];
+    }
+
     // Averages logic
     const thisWeekMetrics = recentMetrics.filter(m => m.date >= sevenDaysAgo);
     const lastWeekMetrics = recentMetrics.filter(m => m.date >= fourteenDaysAgo && m.date < sevenDaysAgo);
@@ -94,6 +106,37 @@ export async function GET() {
         ? Math.round(cardioMetricsWithHr.reduce((acc, m) => acc + (m.cardioHeartRateAvg || 0), 0) / cardioMetricsWithHr.length)
         : null;
 
+    // Build cardio workouts list for hover popover
+    const cardioWorkoutsList = recentWorkouts
+        .filter(w => w.type === 'cardio')
+        .map(w => {
+            const d = new Date(w.date).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric', timeZone: 'UTC' });
+            return {
+                name: w.name,
+                date: d,
+                durationMins: w.durationMins,
+                avgHeartRate: w.avgHeartRate,
+                calories: w.calories
+            };
+        });
+
+    // Build strength workouts by day index (Mon=0 .. Sun=6)
+    const strengthWorkoutsByDay = [0, 1, 2, 3, 4, 5, 6].map(dayIdx => {
+        return recentWorkouts
+            .filter(w => {
+                if (w.type !== 'strength') return false;
+                let d = new Date(w.date).getUTCDay();
+                d = d === 0 ? 6 : d - 1;
+                return d === dayIdx;
+            })
+            .map(w => ({
+                name: w.name,
+                durationMins: w.durationMins,
+                calories: w.calories,
+                avgHeartRate: w.avgHeartRate
+            }));
+    });
+
     // Payload to frontend
     const dashboardData = {
         lastSynced: {
@@ -115,10 +158,12 @@ export async function GET() {
             strengthDays: strengthDaysArray,
             strengthSessions: thisWeekMetrics.reduce((acc, m) => acc + (m.strengthSessions || 0), 0),
             strengthTarget: getGoal('StrengthSessions') || 4,
+            strengthWorkoutsByDay,
             dailyBurnAvg: thisWeekMetrics.reduce((acc, m) => acc + (m.caloriesBurned || 0), 0) / (thisWeekMetrics.length || 1),
             heartRateAvg: cardioHrAvg,
             cardioSessions: thisWeekMetrics.reduce((acc, m) => acc + (m.cardioSessions || 0), 0),
-            cardioMinutes: thisWeekMetrics.reduce((acc, m) => acc + (m.cardioMinutes || 0), 0)
+            cardioMinutes: thisWeekMetrics.reduce((acc, m) => acc + (m.cardioMinutes || 0), 0),
+            cardioWorkouts: cardioWorkoutsList
         },
         recovery: {
             sleepHours: thisWeekMetrics[thisWeekMetrics.length - 1]?.sleepHours || 0, // Last recorded night

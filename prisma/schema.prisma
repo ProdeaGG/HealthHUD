@@ -59,3 +59,18 @@ model Settings {
   lastAppleSyncAt      DateTime?
   lastAppleSyncStatus  String?
 }
+
+model Workout {
+  id           String   @id @default(uuid())
+  externalId   String?  @unique
+  date         DateTime
+  startTime    DateTime?
+  name         String
+  type         String   // "cardio" or "strength"
+  durationMins Float?
+  calories     Float?
+  avgHeartRate Float?
+  createdAt    DateTime @default(now())
+
+  @@index([date])
+}

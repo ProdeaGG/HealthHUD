@@ -1,20 +1,20 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.3.0"
+VERSION="v1.4.0"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • NEW: Added '+' button on Thicc Boy Measurements to log"
-echo "    current measurements (Chest, Waist, Biceps) with date picker."
-echo "  • FIXED: Consistency tracker 'Cardio Avg HR' now strictly"
-echo "    measures heart rate during cardio sessions (running, walking,"
-echo "    treadmill, etc.) rather than whole-day resting heart rate."
-echo "  • Previous (v1.2.0): Sleep crash fix, local timezone dates,"
-echo "    Apple Health sync status footer, removed dummy seed button."
+echo "  • NEW: Floating session inspection tooltips! Hover over"
+echo "    'Cardio Sessions' to see a breakdown of all cardio workouts"
+echo "    this week (names, minutes, heart rate, calories)."
+echo "  • NEW: Hover over any day (M, T, W...) on the Strength tracker"
+echo "    to see what workout was logged for that specific day."
+echo "  • Previous (v1.3.0): Thicc Boy '+' measurement logging modal"
+echo "    and Cardio-specific average heart rate calculation."
 echo "====================================================="
 echo ""
 
