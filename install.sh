@@ -1,18 +1,18 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.1.1"
+VERSION="v1.1.2"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • FIXED: Database tables were never being created on startup,"
-echo "    which caused 'Error saving credentials'. Settings now save."
-echo "  • The app now refuses to start (with a clear message) if the"
-echo "    database can't be set up, instead of failing silently."
-echo "  • Withings can now verify your callback URL when registering."
+echo "  • FIXED: Withings login failing after clicking 'Allow' with a"
+echo "    'Wrong redirect_uri' error. HealthHUD now remembers the exact"
+echo "    address you connected from and reuses it."
+echo "  • Previous (v1.1.1): Database tables now created reliably;"
+echo "    startup stops with a clear message if the database fails."
 echo "  • Previous (v1.1.0): Skip button, Manual Weight Entry, toggle."
 echo "====================================================="
 echo ""

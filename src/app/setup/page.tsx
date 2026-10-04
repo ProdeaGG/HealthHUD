@@ -22,14 +22,15 @@ export default function SetupWizard() {
   const handleSaveWithings = async () => {
     setStatus('Connecting to Withings...');
     try {
+      const callbackUrl = `${window.location.origin}/api/setup/withings-callback`;
       const res = await fetch('/api/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ withingsClientId: clientId, withingsClientSecret: clientSecret })
+        body: JSON.stringify({ withingsClientId: clientId, withingsClientSecret: clientSecret, withingsRedirectUri: callbackUrl })
       });
       if (res.ok) {
         // Redirect to Withings for OAuth
-        const redirectUri = encodeURIComponent(`${window.location.origin}/api/setup/withings-callback`);
+        const redirectUri = encodeURIComponent(callbackUrl);
         const scope = encodeURIComponent('user.metrics');
         const state = encodeURIComponent('step3'); // so we know where to return
         const authUrl = `https://account.withings.com/oauth2_user/authorize2?response_type=code&client_id=${clientId}&state=${state}&scope=${scope}&redirect_uri=${redirectUri}`;

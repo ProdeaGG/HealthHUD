@@ -53,5 +53,6 @@ model Settings {
   withingsRefreshToken String?
   withingsAccessToken  String?
   withingsTokenExpiresAt Int?
+  withingsRedirectUri  String?
   allowManualWeight    Boolean  @default(true)
 }

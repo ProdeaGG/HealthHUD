@@ -23,7 +23,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Client ID or Secret missing in DB.' }, { status: 400 });
     }
 
-    const redirectUri = `${new URL(request.url).origin}/api/setup/withings-callback`;
+    // Must be byte-for-byte identical to the redirect_uri used in the authorize step.
+    // Inside Docker, request.url is the container's internal address (e.g. 0.0.0.0:3000), so we
+    // prefer the value saved by the browser, then fall back to the Host headers.
+    const host = request.headers.get('x-forwarded-host') || request.headers.get('host');
+    const proto = request.headers.get('x-forwarded-proto') || 'http';
+    const headerOrigin = host ? `${proto}://${host}` : new URL(request.url).origin;
+    const redirectUri = settings.withingsRedirectUri || `${headerOrigin}/api/setup/withings-callback`;
+    const appOrigin = new URL(redirectUri).origin;
 
     // Exchange the authorization code for an access token & refresh token
     const tokenResponse = await fetch('https://wbsapi.withings.net/v2/oauth2', {
@@ -55,7 +62,7 @@ export async function GET(request: Request) {
       });
 
       // Redirect back to the setup wizard, step 3
-      return NextResponse.redirect(`${new URL(request.url).origin}/setup?step=3`);
+      return NextResponse.redirect(`${appOrigin}/setup?step=3`);
     } else {
       console.error("Withings OAuth Error:", tokenData);
       return NextResponse.json({ error: 'Failed to retrieve tokens from Withings', details: tokenData }, { status: 400 });
