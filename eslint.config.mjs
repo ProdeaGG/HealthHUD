@@ -1,3 +1,7 @@
+/**
+ * ESLint Configuration
+ * HealthHUD linting rules using Next.js Core Web Vitals and TypeScript configs.
+ */
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";

@@ -1,3 +1,7 @@
+/**
+ * PostCSS Configuration
+ * HealthHUD styling pipeline leveraging Tailwind CSS v4.
+ */
 const config = {
   plugins: {
     "@tailwindcss/postcss": {},
