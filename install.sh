@@ -1,21 +1,24 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.7.0"
+VERSION="v1.8.0"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • NEW: Automated Withings Background Sync Daemon! The container"
-echo "    now automatically pulls your latest weigh-ins from Withings"
-echo "    every 15 minutes in the background."
-echo "  • NEW: 'Sync Now 🔄' button in the dashboard footer for instant"
-echo "    weight pulls right after stepping off the scale."
-echo "  • NEW: Real-time Withings sync status indicator in the footer."
-echo "  • Expanded measurement pull window to 14 days so missed weigh-ins"
-echo "    are automatically backfilled."
+echo "  • DATA INTEGRITY & DEDUPLICATION OVERHAUL:"
+echo "    - Monotonic Daily Steps: Daily step counts now accumulate cleanly"
+echo "      across multiple syncs without accidental double-counting."
+echo "    - Composite Workout Deduplication: Workouts now track unique start"
+echo "      timestamps and HealthKit UUIDs. Logging two separate sessions"
+echo "      with identical durations correctly counts as 2 distinct workouts."
+echo "    - Unified Weekly Consistency: Cardio sessions, minutes, and strength"
+echo "      counts are strictly computed from unique verified workout records."
+echo "  • REPOSITORY & DOCUMENTATION:"
+echo "    - Full README overhaul for CasaOS, Proxmox VE, and Linux servers."
+echo "    - Cleaned up repository structure and updated file descriptions."
 echo "====================================================="
 echo ""
 
