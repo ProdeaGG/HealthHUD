@@ -1,21 +1,20 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.6.1"
+VERSION="v1.6.2"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • FIX: Expanded tooltip sizing with single-line rows so strength"
-echo "    workouts (e.g. '10/3 - Traditional Strength Training - 36:00')"
-echo "    never wrap onto multiple lines."
-echo "  • FIX: Cardio hover breakdown now always displays formatted rows"
-echo "    (e.g. '10/4 - Cardio - 19:00 - -') even if individual workout items"
-echo "    were recorded prior to table initialization or via daily aggregates."
-echo "  • FIX: Added support for both startDate and start payload fields"
-echo "    from Health Auto Export."
+echo "  • FIX: Object-aware Heart Rate Parser: Health Auto Export"
+echo "    sends heart rates inside nested objects (e.g. { qty: 130 },"
+echo "    { avg: 130 }, or time-series arrays). The ingest endpoint now"
+echo "    recursively unpacks all HAE heart rate object structures."
+echo "  • FIX: Cardio Average HR now directly aggregates BPM from"
+echo "    individual cardio workouts."
+echo "  • Single-line tooltip sizing for all strength and cardio workouts."
 echo "====================================================="
 echo ""
 

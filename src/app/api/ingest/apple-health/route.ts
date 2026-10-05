@@ -50,8 +50,65 @@ function toDayDate(value: unknown): Date | null {
 }
 
 function num(value: unknown): number | null {
-  const n = typeof value === 'number' ? value : parseFloat(String(value));
-  return Number.isFinite(n) ? n : null;
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value === 'string') {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    const candidate = obj.qty ?? obj.avg ?? obj.value ?? obj.mean;
+    if (candidate !== undefined) return num(candidate);
+  }
+  return null;
+}
+
+function extractHeartRate(w: any): number | null {
+  if (!w || typeof w !== 'object') return null;
+
+  const candidates = [
+    w.avgHeartRate,
+    w.avg_heart_rate,
+    w.averageHeartRate,
+    w.average_heart_rate,
+    w.heartRate?.avg,
+    w.heartRate?.qty,
+    w.heartRate?.value,
+    w.heartRate,
+    w.heart_rate?.avg,
+    w.heart_rate?.qty,
+    w.heart_rate?.value,
+    w.heart_rate
+  ];
+
+  for (const c of candidates) {
+    const n = num(c);
+    if (n !== null && n > 35 && n < 250) {
+      return Math.round(n);
+    }
+  }
+
+  const hrPoints = Array.isArray(w.heartRateData)
+    ? w.heartRateData
+    : (Array.isArray(w.heartRate?.data) ? w.heartRate.data : []);
+
+  if (hrPoints.length > 0) {
+    let sum = 0;
+    let count = 0;
+    for (const pt of hrPoints) {
+      const val = num(pt?.qty ?? pt?.value ?? pt);
+      if (val !== null && val > 35 && val < 250) {
+        sum += val;
+        count++;
+      }
+    }
+    if (count > 0) {
+      return Math.round(sum / count);
+    }
+  }
+
+  return null;
 }
 
 async function recordSync(status: string) {
@@ -164,8 +221,8 @@ export async function POST(request: Request) {
       const minutes = durationSeconds > 0 ? durationSeconds / 60 : 0;
 
       // Extract workout average heart rate if provided by HAE
-      const workoutHr = num(w?.avgHeartRate) ?? num(w?.avg_heart_rate) ?? num(w?.averageHeartRate) ?? num(w?.heartRate?.avg) ?? num(w?.heartRate) ?? num(w?.heart_rate?.avg) ?? num(w?.heart_rate);
-      const cals = num(w?.activeEnergy) ?? num(w?.active_energy) ?? num(w?.calories) ?? num(w?.totalEnergyBurned);
+      const workoutHr = extractHeartRate(w);
+      const cals = num(w?.activeEnergy ?? w?.active_energy ?? w?.calories ?? w?.totalEnergyBurned);
 
       const isStrength = name.includes('strength') || name.includes('weight') || name.includes('functional') || name.includes('core');
       const workoutType = isStrength ? 'strength' : 'cardio';

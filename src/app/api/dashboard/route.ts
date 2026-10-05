@@ -138,12 +138,6 @@ export async function GET() {
     }));
     const strengthDaysArray = [0, 1, 2, 3, 4, 5, 6].map(i => strengthMap.get(i) || false);
 
-    // Cardio Average Heart Rate (only from workouts classified as cardio in the current week)
-    const cardioMetricsWithHr = thisWeekMetrics.filter(m => (m.cardioHeartRateAvg || 0) > 0);
-    const cardioHrAvg = cardioMetricsWithHr.length > 0
-        ? Math.round(cardioMetricsWithHr.reduce((acc, m) => acc + (m.cardioHeartRateAvg || 0), 0) / cardioMetricsWithHr.length)
-        : null;
-
     // Build cardio workouts list for hover popover
     let cardioWorkoutsList = recentWorkouts
         .filter(w => w.type === 'cardio')
@@ -185,6 +179,18 @@ export async function GET() {
                     });
                 }
             }
+        }
+    }
+
+    // Cardio Average Heart Rate (from workouts classified as cardio in the current week)
+    const cardioWorkoutsWithHr = cardioWorkoutsList.filter(w => (w.avgHeartRate || 0) > 0);
+    let cardioHrAvg: number | null = null;
+    if (cardioWorkoutsWithHr.length > 0) {
+        cardioHrAvg = Math.round(cardioWorkoutsWithHr.reduce((acc, w) => acc + w.avgHeartRate!, 0) / cardioWorkoutsWithHr.length);
+    } else {
+        const cardioMetricsWithHr = thisWeekMetrics.filter(m => (m.cardioHeartRateAvg || 0) > 0);
+        if (cardioMetricsWithHr.length > 0) {
+            cardioHrAvg = Math.round(cardioMetricsWithHr.reduce((acc, m) => acc + (m.cardioHeartRateAvg || 0), 0) / cardioMetricsWithHr.length);
         }
     }
 
