@@ -32,7 +32,12 @@ export async function GET(request: Request) {
 
     if (tokenData.status !== 0 || !tokenData.body) {
       console.error("Token refresh failed:", tokenData);
-      return NextResponse.json({ error: 'Failed to refresh token', details: tokenData }, { status: 401 });
+      const errMsg = `Token refresh failed (status ${tokenData.status})`;
+      await prisma.settings.update({
+        where: { id: 'global' },
+        data: { lastWithingsSyncStatus: `Error: ${errMsg}` }
+      });
+      return NextResponse.json({ error: errMsg, details: tokenData }, { status: 401 });
     }
 
     const newAccessToken = tokenData.body.access_token;
@@ -51,7 +56,7 @@ export async function GET(request: Request) {
 
     console.log("Tokens refreshed and saved. Fetching measurements...");
 
-    // 3. Fetch the latest weight measurement (last 24 hours)
+    // 3. Fetch recent weight measurements (last 14 days to ensure nothing is missed)
     // meastype 1 = Weight
     const measResponse = await fetch('https://wbsapi.withings.net/measure', {
       method: 'POST',
@@ -63,7 +68,7 @@ export async function GET(request: Request) {
         action: 'getmeas',
         meastype: '1', 
         category: '1',
-        lastupdate: String(Math.floor(Date.now() / 1000) - 86400) // last 24h
+        lastupdate: String(Math.floor(Date.now() / 1000) - (86400 * 14)) // last 14 days
       })
     });
 
@@ -71,7 +76,12 @@ export async function GET(request: Request) {
     
     if (measData.status !== 0) {
        console.error("Failed to fetch measurements:", measData);
-       return NextResponse.json({ error: 'Failed to fetch measurements' }, { status: 400 });
+       const errMsg = `Failed to fetch measurements (status ${measData.status})`;
+       await prisma.settings.update({
+         where: { id: 'global' },
+         data: { lastWithingsSyncStatus: `Error: ${errMsg}` }
+       });
+       return NextResponse.json({ error: errMsg }, { status: 400 });
     }
 
     const measures = measData.body.measuregrps || [];
@@ -96,11 +106,24 @@ export async function GET(request: Request) {
         inserted++;
     }
 
-    console.log(`Withings Sync Complete. Updated ${inserted} weight logs.`);
-    return NextResponse.json({ success: true, message: `Withings sync completed. Updated ${inserted} logs.` });
+    const successMsg = `OK (${inserted} weight logs updated)`;
+    await prisma.settings.update({
+      where: { id: 'global' },
+      data: {
+        lastWithingsSyncAt: new Date(),
+        lastWithingsSyncStatus: successMsg
+      }
+    });
 
-  } catch (error) {
+    console.log(`Withings Sync Complete. Updated ${inserted} weight logs.`);
+    return NextResponse.json({ success: true, message: `Withings sync completed. Updated ${inserted} logs.`, updated: inserted });
+
+  } catch (error: any) {
     console.error("Withings Cron Error:", error);
+    await prisma.settings.update({
+      where: { id: 'global' },
+      data: { lastWithingsSyncStatus: `Error: ${error?.message || String(error)}` }
+    }).catch(() => {});
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

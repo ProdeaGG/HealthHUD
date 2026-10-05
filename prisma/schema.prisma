@@ -59,6 +59,8 @@ model Settings {
   allowManualWeight    Boolean  @default(true)
   lastAppleSyncAt      DateTime?
   lastAppleSyncStatus  String?
+  lastWithingsSyncAt   DateTime?
+  lastWithingsSyncStatus String?
 }
 
 model Workout {

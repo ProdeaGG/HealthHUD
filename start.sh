@@ -19,7 +19,7 @@ else
   exit 1
 fi
 
-echo "[2/3] Starting backup daemon (daily copy to /backups)..."
+echo "[2/4] Starting backup daemon (daily copy to /backups)..."
 (
   while true; do
     DAY=$(date +%A)
@@ -30,5 +30,15 @@ echo "[2/3] Starting backup daemon (daily copy to /backups)..."
   done
 ) &
 
-echo "[3/3] Starting HealthHUD web server on port ${PORT:-3000}..."
+echo "[3/4] Starting Withings background sync daemon (runs every 15 minutes)..."
+(
+  # Wait 20 seconds for the web server to start up
+  sleep 20
+  while true; do
+    wget -q -O - "http://127.0.0.1:${PORT:-3000}/api/cron/withings" >/dev/null 2>&1 || true
+    sleep 900
+  done
+) &
+
+echo "[4/4] Starting HealthHUD web server on port ${PORT:-3000}..."
 exec node server.js

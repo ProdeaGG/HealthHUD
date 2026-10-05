@@ -276,7 +276,8 @@ export async function GET() {
         lastSynced: {
             appleHealth: settings?.lastAppleSyncAt || (recentMetrics.length > 0 ? recentMetrics[recentMetrics.length - 1].updatedAt : null),
             appleHealthStatus: settings?.lastAppleSyncStatus || null,
-            withings: latestWeight?.createdAt || null
+            withings: settings?.lastWithingsSyncAt || latestWeight?.createdAt || null,
+            withingsStatus: settings?.lastWithingsSyncStatus || null
         },
         vitals: {
             weightLbs: latestWeight?.weightLbs || 0,

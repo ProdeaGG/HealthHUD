@@ -1,20 +1,21 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.6.2"
+VERSION="v1.7.0"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • FIX: Object-aware Heart Rate Parser: Health Auto Export"
-echo "    sends heart rates inside nested objects (e.g. { qty: 130 },"
-echo "    { avg: 130 }, or time-series arrays). The ingest endpoint now"
-echo "    recursively unpacks all HAE heart rate object structures."
-echo "  • FIX: Cardio Average HR now directly aggregates BPM from"
-echo "    individual cardio workouts."
-echo "  • Single-line tooltip sizing for all strength and cardio workouts."
+echo "  • NEW: Automated Withings Background Sync Daemon! The container"
+echo "    now automatically pulls your latest weigh-ins from Withings"
+echo "    every 15 minutes in the background."
+echo "  • NEW: 'Sync Now 🔄' button in the dashboard footer for instant"
+echo "    weight pulls right after stepping off the scale."
+echo "  • NEW: Real-time Withings sync status indicator in the footer."
+echo "  • Expanded measurement pull window to 14 days so missed weigh-ins"
+echo "    are automatically backfilled."
 echo "====================================================="
 echo ""
 

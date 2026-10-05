@@ -44,6 +44,8 @@ export default function Dashboard() {
     emptyText?: string;
   } | null>(null);
 
+  const [syncingWithings, setSyncingWithings] = useState(false);
+
   useEffect(() => {
     async function loadData() {
       try {
@@ -437,7 +439,32 @@ export default function Dashboard() {
                   <span className={`block text-[10px] mt-1 ${data.lastSynced.appleHealthStatus.startsWith('OK') ? 'text-green-500' : 'text-red-400'}`}>{data.lastSynced.appleHealthStatus}</span>
               )}
           </div>
-          <div>Withings: <span className="text-gray-400">{data.lastSynced?.withings ? new Date(data.lastSynced.withings).toLocaleString() : 'Never'}</span></div>
+          <div>
+              Withings: <span className="text-gray-400">{data.lastSynced?.withings ? new Date(data.lastSynced.withings).toLocaleString() : 'Never'}</span>
+              <button 
+                  onClick={async () => {
+                      setSyncingWithings(true);
+                      try {
+                          await fetch('/api/cron/withings');
+                          const res = await fetch('/api/dashboard');
+                          const json = await res.json();
+                          setData(json);
+                      } catch (e) {
+                          console.error(e);
+                      } finally {
+                          setSyncingWithings(false);
+                      }
+                  }}
+                  disabled={syncingWithings}
+                  className="ml-2 text-[10px] bg-gray-800 hover:bg-gray-700 text-green-400 px-2 py-0.5 rounded border border-gray-700 transition-colors disabled:opacity-50"
+                  title="Check Withings scale for new weigh-in now"
+              >
+                  {syncingWithings ? 'Syncing...' : 'Sync Now 🔄'}
+              </button>
+              {data.lastSynced?.withingsStatus && (
+                  <span className={`block text-[10px] mt-1 ${data.lastSynced.withingsStatus.startsWith('OK') ? 'text-green-500' : 'text-red-400'}`}>{data.lastSynced.withingsStatus}</span>
+              )}
+          </div>
       </div>
 
       {/* Global Settings Modal */}
