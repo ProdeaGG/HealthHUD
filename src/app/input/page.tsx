@@ -1,3 +1,7 @@
+/**
+ * Manual Measurements Fallback Entry Page
+ * Dedicated form for quick-logging body tape measurements (chest, waist, biceps).
+ */
 "use client";
 
 import React, { useState } from 'react';

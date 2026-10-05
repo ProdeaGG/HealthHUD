@@ -1,3 +1,7 @@
+/**
+ * HealthHUD Global Stylesheet
+ * Tailwind CSS imports, theme variables, and global layout resets.
+ */
 @import "tailwindcss";
 
 :root {
