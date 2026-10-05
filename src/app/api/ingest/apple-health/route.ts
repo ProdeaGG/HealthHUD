@@ -149,11 +149,17 @@ export async function POST(request: Request) {
       const rawName = String(w?.name || 'Workout');
       const name = rawName.toLowerCase();
 
-      let minutes = 0;
+      let durationSeconds = 0;
       const s = w?.start ? new Date(String(w.start).replace(' ', 'T').replace(/ ([+-]\d{2})(\d{2})$/, '$1:$2')) : null;
       const e = w?.end ? new Date(String(w.end).replace(' ', 'T').replace(/ ([+-]\d{2})(\d{2})$/, '$1:$2')) : null;
-      if (s && e && !isNaN(s.getTime()) && !isNaN(e.getTime())) minutes = (e.getTime() - s.getTime()) / 60000;
-      else if (num(w?.duration) !== null) minutes = num(w.duration)! / 60; // v2: seconds
+      if (s && e && !isNaN(s.getTime()) && !isNaN(e.getTime())) {
+        durationSeconds = Math.max(0, Math.round((e.getTime() - s.getTime()) / 1000));
+      } else if (num(w?.duration) !== null) {
+        durationSeconds = Math.max(0, Math.round(num(w.duration)!));
+      } else if (num(w?.durationMins) !== null) {
+        durationSeconds = Math.max(0, Math.round(num(w.durationMins)! * 60));
+      }
+      const minutes = durationSeconds > 0 ? durationSeconds / 60 : 0;
 
       // Extract workout average heart rate if provided by HAE
       const workoutHr = num(w?.avgHeartRate) ?? num(w?.avg_heart_rate) ?? num(w?.averageHeartRate) ?? num(w?.heartRate?.avg) ?? num(w?.heartRate) ?? num(w?.heart_rate?.avg) ?? num(w?.heart_rate);
@@ -175,7 +181,7 @@ export async function POST(request: Request) {
 
       // Save individual workout record for detailed inspection/hover lists
       try {
-        const extId = String(w?.id || w?.uuid || `${day.date.toISOString()}_${s ? s.toISOString() : ''}_${rawName}_${Math.round(minutes)}`);
+        const extId = String(w?.id || w?.uuid || `${day.date.toISOString()}_${s ? s.toISOString() : ''}_${rawName}_${durationSeconds}`);
         await prisma.workout.upsert({
           where: { externalId: extId },
           update: {
@@ -183,7 +189,8 @@ export async function POST(request: Request) {
             startTime: s && !isNaN(s.getTime()) ? s : null,
             name: rawName,
             type: workoutType,
-            durationMins: Math.round(minutes),
+            durationMins: minutes > 0 ? Number(minutes.toFixed(2)) : null,
+            durationSec: durationSeconds > 0 ? durationSeconds : null,
             calories: cals ? Math.round(cals) : null,
             avgHeartRate: workoutHr ? Math.round(workoutHr) : null,
           },
@@ -193,7 +200,8 @@ export async function POST(request: Request) {
             startTime: s && !isNaN(s.getTime()) ? s : null,
             name: rawName,
             type: workoutType,
-            durationMins: Math.round(minutes),
+            durationMins: minutes > 0 ? Number(minutes.toFixed(2)) : null,
+            durationSec: durationSeconds > 0 ? durationSeconds : null,
             calories: cals ? Math.round(cals) : null,
             avgHeartRate: workoutHr ? Math.round(workoutHr) : null,
           }

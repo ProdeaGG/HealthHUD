@@ -39,7 +39,8 @@ export default function Dashboard() {
     x: number;
     y: number;
     title: string;
-    items: Array<{ title: string; subtitle?: string }>;
+    headerLine?: string;
+    rows?: string[];
     emptyText?: string;
   } | null>(null);
 
@@ -227,7 +228,32 @@ export default function Dashboard() {
         <div className="border-4 lg:border-0 lg:border-l-4 border-[#333] flex flex-col justify-between p-4 lg:p-6" style={{ backgroundColor: '#d99596', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
             <div className="text-center mt-2 lg:mt-4">
                 <h2 className="text-2xl lg:text-3xl mb-2 lg:mb-4 font-semibold">Consistency Tracker</h2>
-                <p className="text-lg lg:text-xl xl:text-2xl uppercase tracking-wide mb-2 lg:mb-4">Strength: {data.consistency.strengthSessions} / {data.consistency.strengthTarget} Sessions</p>
+                <p 
+                    className="text-lg lg:text-xl xl:text-2xl uppercase tracking-wide mb-2 lg:mb-4 cursor-pointer hover:opacity-90 inline-block"
+                    onMouseEnter={(e) => {
+                        const strengthList = data.consistency.strengthWorkouts || [];
+                        const rows = strengthList.map((w: any) => {
+                            return `${w.date} - ${w.name || 'Strength'} - ${w.durationFormatted || '0:00'}`;
+                        });
+                        setHoverTooltip({
+                            visible: true,
+                            x: e.clientX,
+                            y: e.clientY,
+                            title: 'Strength Sessions',
+                            headerLine: 'Date - Strength - Duration',
+                            rows,
+                            emptyText: data.consistency.strengthSessions > 0
+                                ? `${data.consistency.strengthSessions} strength session(s) logged this week`
+                                : 'No strength workouts recorded this week'
+                        });
+                    }}
+                    onMouseMove={(e) => {
+                        setHoverTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                    }}
+                    onMouseLeave={() => setHoverTooltip(null)}
+                >
+                    Strength: {data.consistency.strengthSessions} / {data.consistency.strengthTarget} Sessions
+                </p>
                 <p className="text-lg lg:text-xl xl:text-2xl uppercase font-bold tracking-wide mb-4 lg:mb-6">Wkly Daily Burn: {Math.round(data.consistency.dailyBurnAvg)} Kcals</p>
             </div>
             
@@ -241,20 +267,16 @@ export default function Dashboard() {
                                 key={idx} 
                                 className="flex flex-col items-center flex-1 cursor-pointer group py-1"
                                 onMouseEnter={(e) => {
-                                    const items = dayWorkouts.map((w: any) => ({
-                                        title: w.name || 'Strength Workout',
-                                        subtitle: [
-                                            w.durationMins ? `${w.durationMins} mins` : null,
-                                            w.avgHeartRate ? `${w.avgHeartRate} bpm` : null,
-                                            w.calories ? `${w.calories} kcal` : null
-                                        ].filter(Boolean).join(' • ')
-                                    }));
+                                    const rows = dayWorkouts.map((w: any) => {
+                                        return `${w.date} - ${w.name || 'Strength'} - ${w.durationFormatted || '0:00'}`;
+                                    });
                                     setHoverTooltip({
                                         visible: true,
                                         x: e.clientX,
                                         y: e.clientY,
-                                        title: `${fullDays[idx]} Strength Workouts`,
-                                        items,
+                                        title: `${fullDays[idx]} Strength Sessions`,
+                                        headerLine: 'Date - Strength - Duration',
+                                        rows,
                                         emptyText: data.consistency.strengthDays[idx] ? 'Strength workout logged for this day' : 'No strength workout recorded'
                                     });
                                 }}
@@ -276,20 +298,17 @@ export default function Dashboard() {
                     className="flex-1 cursor-pointer hover:bg-black/15 transition-all rounded p-1"
                     onMouseEnter={(e) => {
                         const cardioList = data.consistency.cardioWorkouts || [];
-                        const items = cardioList.map((w: any) => ({
-                            title: `${w.name || 'Cardio'}${w.date ? ` • ${w.date}` : ''}`,
-                            subtitle: [
-                                w.durationMins ? `${w.durationMins} mins` : null,
-                                w.avgHeartRate ? `${w.avgHeartRate} bpm` : null,
-                                w.calories ? `${w.calories} kcal` : null
-                            ].filter(Boolean).join(' • ')
-                        }));
+                        const rows = cardioList.map((w: any) => {
+                            const hrStr = w.avgHeartRate ? `${w.avgHeartRate}` : '-';
+                            return `${w.date} - ${w.name || 'Cardio'} - ${w.durationFormatted || '0:00'} - ${hrStr}`;
+                        });
                         setHoverTooltip({
                             visible: true,
                             x: e.clientX,
                             y: e.clientY,
-                            title: 'Cardio Sessions This Week',
-                            items,
+                            title: 'Cardio Sessions',
+                            headerLine: 'Date - Cardio - Duration - HR',
+                            rows,
                             emptyText: data.consistency.cardioSessions > 0
                                 ? `${data.consistency.cardioSessions} cardio session(s) logged this week`
                                 : 'No cardio sessions recorded this week'
@@ -685,28 +704,34 @@ export default function Dashboard() {
       {/* Floating Hover Tooltip / Popover attached to mouse */}
       {hoverTooltip && hoverTooltip.visible && (
           <div 
-              className="fixed pointer-events-none z-[9999] bg-gray-950/95 text-white border-2 border-gray-700 shadow-2xl rounded-lg p-3 text-xs min-w-[220px] max-w-xs transition-opacity duration-75 backdrop-blur-md"
+              className="fixed pointer-events-none z-[9999] bg-gray-950/95 text-white border-2 border-gray-700 shadow-2xl rounded-lg p-3 text-xs min-w-[280px] max-w-sm transition-opacity duration-75 backdrop-blur-md"
               style={{
-                  left: typeof window !== 'undefined' ? Math.min(hoverTooltip.x + 16, window.innerWidth - 250) : hoverTooltip.x + 16,
-                  top: typeof window !== 'undefined' ? Math.min(hoverTooltip.y + 16, window.innerHeight - 200) : hoverTooltip.y + 16
+                  left: typeof window !== 'undefined' ? Math.min(hoverTooltip.x + 16, window.innerWidth - 320) : hoverTooltip.x + 16,
+                  top: typeof window !== 'undefined' ? Math.min(hoverTooltip.y + 16, window.innerHeight - 220) : hoverTooltip.y + 16
               }}
           >
               <div className="font-bold text-gray-200 border-b border-gray-800 pb-1.5 mb-2 flex items-center justify-between">
                   <span className="text-orange-400 font-bold">{hoverTooltip.title}</span>
-                  {hoverTooltip.items.length > 0 && (
+                  {(hoverTooltip.rows?.length || 0) > 0 && (
                       <span className="text-[10px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-normal ml-2">
-                          {hoverTooltip.items.length} {hoverTooltip.items.length === 1 ? 'session' : 'sessions'}
+                          {hoverTooltip.rows!.length} {hoverTooltip.rows!.length === 1 ? 'session' : 'sessions'}
                       </span>
                   )}
               </div>
-              {hoverTooltip.items.length > 0 ? (
-                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                      {hoverTooltip.items.map((item, i) => (
-                          <div key={i} className="bg-gray-900/90 p-2 rounded border border-gray-800">
-                              <div className="font-semibold text-white text-xs">{item.title}</div>
-                              {item.subtitle && <div className="text-orange-300/80 text-[11px] mt-0.5">{item.subtitle}</div>}
+              {(hoverTooltip.rows && hoverTooltip.rows.length > 0) ? (
+                  <div className="space-y-1.5">
+                      {hoverTooltip.headerLine && (
+                          <div className="text-[11px] font-mono font-semibold text-gray-400 bg-gray-900/90 px-2.5 py-1 rounded border border-gray-800 tracking-tight">
+                              {hoverTooltip.headerLine}
                           </div>
-                      ))}
+                      )}
+                      <div className="space-y-1 max-h-56 overflow-y-auto pr-0.5">
+                          {hoverTooltip.rows.map((row, i) => (
+                              <div key={i} className="bg-gray-900/90 px-2.5 py-1.5 rounded border border-gray-800 font-mono text-xs text-white">
+                                  {row}
+                              </div>
+                          ))}
+                      </div>
                   </div>
               ) : (
                   <div className="text-gray-400 italic text-[11px] py-1">{hoverTooltip.emptyText}</div>

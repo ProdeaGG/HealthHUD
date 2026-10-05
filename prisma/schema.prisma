@@ -69,6 +69,7 @@ model Workout {
   name         String
   type         String   // "cardio" or "strength"
   durationMins Float?
+  durationSec  Int?
   calories     Float?
   avgHeartRate Float?
   createdAt    DateTime @default(now())
