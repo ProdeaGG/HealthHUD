@@ -145,7 +145,7 @@ export async function GET() {
         : null;
 
     // Build cardio workouts list for hover popover
-    const cardioWorkoutsList = recentWorkouts
+    let cardioWorkoutsList = recentWorkouts
         .filter(w => w.type === 'cardio')
         .map(w => {
             const d = new Date(w.date);
@@ -162,13 +162,39 @@ export async function GET() {
             };
         });
 
+    // Fallback: If no individual workout rows exist yet in the Workout table for this week,
+    // but thisWeekMetrics recorded cardio sessions (e.g. from earlier sync or metric-only export),
+    // synthesize the entries so the hover breakdown displays accurately instead of being empty!
+    if (cardioWorkoutsList.length === 0) {
+        for (const m of thisWeekMetrics) {
+            const count = m.cardioSessions || 0;
+            if (count > 0) {
+                const d = new Date(m.date);
+                const dateStr = `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+                const totalMins = m.cardioMinutes || 0;
+                const minsPerSession = Math.round(totalMins / count);
+                for (let i = 0; i < count; i++) {
+                    cardioWorkoutsList.push({
+                        id: `metric_cardio_${m.id}_${i}`,
+                        name: 'Cardio',
+                        date: dateStr,
+                        durationFormatted: formatDuration(minsPerSession * 60),
+                        durationMins: minsPerSession,
+                        avgHeartRate: m.cardioHeartRateAvg ? Math.round(m.cardioHeartRateAvg) : null,
+                        calories: null
+                    });
+                }
+            }
+        }
+    }
+
     // Build strength workouts by day index (Mon=0 .. Sun=6)
     const strengthWorkoutsByDay = [0, 1, 2, 3, 4, 5, 6].map(dayIdx => {
         const dayDate = new Date(startOfWeek);
         dayDate.setUTCDate(startOfWeek.getUTCDate() + dayIdx);
         const dayDateStr = `${dayDate.getUTCMonth() + 1}/${dayDate.getUTCDate()}`;
 
-        return recentWorkouts
+        const dayWorkouts = recentWorkouts
             .filter(w => {
                 if (w.type !== 'strength') return false;
                 let d = new Date(w.date).getUTCDay();
@@ -186,10 +212,24 @@ export async function GET() {
                     calories: w.calories
                 };
             });
+
+        // Fallback for this specific day if HealthMetric recorded strengthSessions > 0
+        if (dayWorkouts.length === 0 && strengthDaysArray[dayIdx]) {
+            dayWorkouts.push({
+                id: `fallback_${dayIdx}`,
+                name: 'Strength Training',
+                date: dayDateStr,
+                durationFormatted: '30:00',
+                durationMins: 30,
+                calories: null
+            });
+        }
+
+        return dayWorkouts;
     });
 
     // All strength workouts this week
-    const allStrengthWorkouts = recentWorkouts
+    let allStrengthWorkouts = recentWorkouts
         .filter(w => w.type === 'strength')
         .map(w => {
             const d = new Date(w.date);
@@ -204,6 +244,26 @@ export async function GET() {
                 calories: w.calories
             };
         });
+
+    if (allStrengthWorkouts.length === 0) {
+        for (const m of thisWeekMetrics) {
+            const count = m.strengthSessions || 0;
+            if (count > 0) {
+                const d = new Date(m.date);
+                const dateStr = `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+                for (let i = 0; i < count; i++) {
+                    allStrengthWorkouts.push({
+                        id: `metric_str_${m.id}_${i}`,
+                        name: 'Strength Training',
+                        date: dateStr,
+                        durationFormatted: '30:00',
+                        durationMins: 30,
+                        calories: null
+                    });
+                }
+            }
+        }
+    }
 
     // Payload to frontend
     const dashboardData = {

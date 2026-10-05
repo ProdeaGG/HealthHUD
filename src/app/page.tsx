@@ -704,16 +704,16 @@ export default function Dashboard() {
       {/* Floating Hover Tooltip / Popover attached to mouse */}
       {hoverTooltip && hoverTooltip.visible && (
           <div 
-              className="fixed pointer-events-none z-[9999] bg-gray-950/95 text-white border-2 border-gray-700 shadow-2xl rounded-lg p-3 text-xs min-w-[280px] max-w-sm transition-opacity duration-75 backdrop-blur-md"
+              className="fixed pointer-events-none z-[9999] bg-gray-950/95 text-white border-2 border-gray-700 shadow-2xl rounded-lg p-3 text-xs w-max min-w-[340px] max-w-lg transition-opacity duration-75 backdrop-blur-md"
               style={{
-                  left: typeof window !== 'undefined' ? Math.min(hoverTooltip.x + 16, window.innerWidth - 320) : hoverTooltip.x + 16,
+                  left: typeof window !== 'undefined' ? Math.min(hoverTooltip.x + 16, window.innerWidth - 440) : hoverTooltip.x + 16,
                   top: typeof window !== 'undefined' ? Math.min(hoverTooltip.y + 16, window.innerHeight - 220) : hoverTooltip.y + 16
               }}
           >
               <div className="font-bold text-gray-200 border-b border-gray-800 pb-1.5 mb-2 flex items-center justify-between">
-                  <span className="text-orange-400 font-bold">{hoverTooltip.title}</span>
+                  <span className="text-orange-400 font-bold whitespace-nowrap">{hoverTooltip.title}</span>
                   {(hoverTooltip.rows?.length || 0) > 0 && (
-                      <span className="text-[10px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-normal ml-2">
+                      <span className="text-[10px] text-gray-400 bg-gray-800 px-1.5 py-0.5 rounded font-normal ml-3 whitespace-nowrap">
                           {hoverTooltip.rows!.length} {hoverTooltip.rows!.length === 1 ? 'session' : 'sessions'}
                       </span>
                   )}
@@ -721,13 +721,13 @@ export default function Dashboard() {
               {(hoverTooltip.rows && hoverTooltip.rows.length > 0) ? (
                   <div className="space-y-1.5">
                       {hoverTooltip.headerLine && (
-                          <div className="text-[11px] font-mono font-semibold text-gray-400 bg-gray-900/90 px-2.5 py-1 rounded border border-gray-800 tracking-tight">
+                          <div className="text-[11px] font-mono font-semibold text-gray-400 bg-gray-900/90 px-3 py-1 rounded border border-gray-800 tracking-tight whitespace-nowrap">
                               {hoverTooltip.headerLine}
                           </div>
                       )}
                       <div className="space-y-1 max-h-56 overflow-y-auto pr-0.5">
                           {hoverTooltip.rows.map((row, i) => (
-                              <div key={i} className="bg-gray-900/90 px-2.5 py-1.5 rounded border border-gray-800 font-mono text-xs text-white">
+                              <div key={i} className="bg-gray-900/90 px-3 py-1.5 rounded border border-gray-800 font-mono text-xs text-white whitespace-nowrap">
                                   {row}
                               </div>
                           ))}

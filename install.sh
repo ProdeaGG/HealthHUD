@@ -1,22 +1,21 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.6.0"
+VERSION="v1.6.1"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • NEW: Formatted Cardio Sessions tooltip with column header:"
-echo "    'Date - Cardio - Duration - HR' (e.g. '10/4 - Outdoor Walk - 17:34 - 130')."
-echo "  • NEW: Formatted Strength Sessions tooltip on each day & weekly count:"
-echo "    'Date - Strength - Duration' (e.g. '10/4 - Traditional Strength Training - 45:00')."
-echo "  • NEW: Calendar Week Synchronization: Cardio sessions, minutes, HR,"
-echo "    and strength sessions strictly track Monday-Sunday and cleanly restart"
-echo "    when each new week begins."
-echo "  • NEW: Workout durations now track and display down to the second in MM:SS."
-echo "  • Previous (v1.5.0): Starting baseline progress bars for Thicc Boy."
+echo "  • FIX: Expanded tooltip sizing with single-line rows so strength"
+echo "    workouts (e.g. '10/3 - Traditional Strength Training - 36:00')"
+echo "    never wrap onto multiple lines."
+echo "  • FIX: Cardio hover breakdown now always displays formatted rows"
+echo "    (e.g. '10/4 - Cardio - 19:00 - -') even if individual workout items"
+echo "    were recorded prior to table initialization or via daily aggregates."
+echo "  • FIX: Added support for both startDate and start payload fields"
+echo "    from Health Auto Export."
 echo "====================================================="
 echo ""
 

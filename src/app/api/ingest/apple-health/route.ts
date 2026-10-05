@@ -144,14 +144,16 @@ export async function POST(request: Request) {
 
     // 2. Workouts (only present if an automation uses Data Type = Workouts)
     for (const w of workouts) {
-      const day = getDay(w?.start);
+      const startRaw = w?.start ?? w?.startDate ?? w?.start_date;
+      const endRaw = w?.end ?? w?.endDate ?? w?.end_date;
+      const day = getDay(startRaw);
       if (!day) continue;
       const rawName = String(w?.name || 'Workout');
       const name = rawName.toLowerCase();
 
       let durationSeconds = 0;
-      const s = w?.start ? new Date(String(w.start).replace(' ', 'T').replace(/ ([+-]\d{2})(\d{2})$/, '$1:$2')) : null;
-      const e = w?.end ? new Date(String(w.end).replace(' ', 'T').replace(/ ([+-]\d{2})(\d{2})$/, '$1:$2')) : null;
+      const s = startRaw ? new Date(String(startRaw).replace(' ', 'T').replace(/ ([+-]\d{2})(\d{2})$/, '$1:$2')) : null;
+      const e = endRaw ? new Date(String(endRaw).replace(' ', 'T').replace(/ ([+-]\d{2})(\d{2})$/, '$1:$2')) : null;
       if (s && e && !isNaN(s.getTime()) && !isNaN(e.getTime())) {
         durationSeconds = Math.max(0, Math.round((e.getTime() - s.getTime()) / 1000));
       } else if (num(w?.duration) !== null) {
