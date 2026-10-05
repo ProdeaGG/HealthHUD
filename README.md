@@ -7,7 +7,7 @@
 [![Prisma](https://img.shields.io/badge/Prisma-SQLite-16a34a?logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**HealthHUD** is an anime-inspired, high-visibility personal health dashboard built to run 24/7 on your home server (**CasaOS, Proxmox VE, Ubuntu, or Debian Linux**). 
+**HealthHUD** is a high-visibility personal health dashboard built to run 24/7 on your home server (**CasaOS, Proxmox VE, Ubuntu, or Debian Linux**). 
 
 Stop checking four different phone apps and wrestling with brittle Google Sheets scripts that double-count your steps. HealthHUD pulls your live Apple Health workouts, Withings smart scale weigh-ins, sleep architecture, and tape measurements into a unified **4-Quadrant Tactical Command Center**.
 
