@@ -240,7 +240,11 @@ export async function POST(request: Request) {
 
       // Save individual workout record for detailed inspection/hover lists
       try {
-        const extId = String(w?.id || w?.uuid || `${day.date.toISOString()}_${s ? s.toISOString() : ''}_${rawName}_${durationSeconds}`);
+        const startIso = s && !isNaN(s.getTime()) ? s.toISOString() : (startRaw ? String(startRaw) : '');
+        const endIso = e && !isNaN(e.getTime()) ? e.toISOString() : '';
+        const calPart = cals ? `_cal${Math.round(cals)}` : '';
+        const extId = String(w?.id ?? w?.uuid ?? w?.workoutId ?? `${day.date.toISOString().split('T')[0]}_${startIso}_${endIso}_${rawName}_${durationSeconds}${calPart}`);
+
         await prisma.workout.upsert({
           where: { externalId: extId },
           update: {
@@ -275,15 +279,44 @@ export async function POST(request: Request) {
     // 3. Save. Only overwrite fields that were actually present in this export,
     //    so a metrics-only export never wipes workout counts (and vice versa).
     for (const day of Array.from(days.values())) {
+      const existing = await prisma.healthMetric.findUnique({ where: { date: day.date } });
+
       const data: any = {};
-      if (day.steps !== undefined) data.steps = Math.round(day.steps);
-      if (day.caloriesBurned !== undefined) data.caloriesBurned = Math.round(day.caloriesBurned);
-      if (day.hrCount > 0) data.restingHeartRate = Math.round(day.hrSum / day.hrCount);
-      if (day.sleepHours !== undefined) data.sleepHours = parseFloat(day.sleepHours.toFixed(1));
-      if (day.cardioSessions !== undefined) data.cardioSessions = day.cardioSessions;
-      if (day.cardioMinutes !== undefined) data.cardioMinutes = day.cardioMinutes;
-      if (day.cardioHrCount > 0) data.cardioHeartRateAvg = Math.round(day.cardioHrSum / day.cardioHrCount);
-      if (day.strengthSessions !== undefined) data.strengthSessions = day.strengthSessions;
+      // Steps and calories accumulate monotonically across the day; keep the highest verified value
+      if (day.steps !== undefined) {
+        data.steps = Math.max(existing?.steps || 0, Math.round(day.steps));
+      }
+      if (day.caloriesBurned !== undefined) {
+        data.caloriesBurned = Math.max(existing?.caloriesBurned || 0, Math.round(day.caloriesBurned));
+      }
+      if (day.hrCount > 0) {
+        data.restingHeartRate = Math.round(day.hrSum / day.hrCount);
+      }
+      if (day.sleepHours !== undefined) {
+        data.sleepHours = parseFloat(day.sleepHours.toFixed(1));
+      }
+
+      // Re-query unique workouts for this day directly from the Workout table to guarantee
+      // that cardioSessions, cardioMinutes, and strengthSessions reflect the true itemized workout count
+      const workoutsForDay = await prisma.workout.findMany({ where: { date: day.date } });
+      if (workoutsForDay.length > 0) {
+        const cardioOnDay = workoutsForDay.filter(w => w.type === 'cardio');
+        const strengthOnDay = workoutsForDay.filter(w => w.type === 'strength');
+
+        data.cardioSessions = cardioOnDay.length;
+        data.cardioMinutes = Math.round(cardioOnDay.reduce((acc, w) => acc + (w.durationMins || 0), 0));
+        data.strengthSessions = strengthOnDay.length;
+
+        const cardioHrs = cardioOnDay.map(w => w.avgHeartRate).filter((hr): hr is number => hr !== null && hr > 0);
+        if (cardioHrs.length > 0) {
+          data.cardioHeartRateAvg = Math.round(cardioHrs.reduce((a, b) => a + b, 0) / cardioHrs.length);
+        }
+      } else {
+        if (day.cardioSessions !== undefined) data.cardioSessions = Math.max(existing?.cardioSessions || 0, day.cardioSessions);
+        if (day.cardioMinutes !== undefined) data.cardioMinutes = Math.max(existing?.cardioMinutes || 0, day.cardioMinutes);
+        if (day.cardioHrCount > 0) data.cardioHeartRateAvg = Math.round(day.cardioHrSum / day.cardioHrCount);
+        if (day.strengthSessions !== undefined) data.strengthSessions = Math.max(existing?.strengthSessions || 0, day.strengthSessions);
+      }
       if (Object.keys(data).length === 0) continue;
 
       await prisma.healthMetric.upsert({

@@ -291,7 +291,9 @@ export async function GET() {
         },
         consistency: {
             strengthDays: strengthDaysArray,
-            strengthSessions: thisWeekMetrics.reduce((acc, m) => acc + (m.strengthSessions || 0), 0),
+            strengthSessions: allStrengthWorkouts.length > 0
+                ? allStrengthWorkouts.length
+                : thisWeekMetrics.reduce((acc, m) => acc + (m.strengthSessions || 0), 0),
             strengthTarget: getGoal('StrengthSessions') || 4,
             strengthWorkoutsByDay,
             strengthWorkouts: allStrengthWorkouts,
@@ -299,8 +301,12 @@ export async function GET() {
                 ? thisWeekMetrics.reduce((acc, m) => acc + (m.caloriesBurned || 0), 0) / thisWeekMetrics.length 
                 : 0,
             heartRateAvg: cardioHrAvg,
-            cardioSessions: thisWeekMetrics.reduce((acc, m) => acc + (m.cardioSessions || 0), 0),
-            cardioMinutes: thisWeekMetrics.reduce((acc, m) => acc + (m.cardioMinutes || 0), 0),
+            cardioSessions: cardioWorkoutsList.length > 0
+                ? cardioWorkoutsList.length
+                : thisWeekMetrics.reduce((acc, m) => acc + (m.cardioSessions || 0), 0),
+            cardioMinutes: cardioWorkoutsList.length > 0
+                ? Math.round(cardioWorkoutsList.reduce((acc, w) => acc + (w.durationMins || 0), 0))
+                : thisWeekMetrics.reduce((acc, m) => acc + (m.cardioMinutes || 0), 0),
             cardioWorkouts: cardioWorkoutsList
         },
         recovery: {

@@ -1,3 +1,7 @@
+/**
+ * Weekly Summary API Route
+ * Aggregates historical HealthMetrics by ISO calendar week (steps, sleep, cardio, strength).
+ */
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
