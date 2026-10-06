@@ -297,7 +297,8 @@ export async function GET() {
                 lastWeekTotalSteps: Math.round(lastWeekTotalSteps),
                 difference: Math.round(stepsDifference),
                 thisWeekDailyAvg: Math.round(thisWeekStepsAvg),
-                lastWeekDailyAvg: Math.round(lastWeekStepsAvg)
+                lastWeekDailyAvg: Math.round(lastWeekStepsAvg),
+                dailyAvgDifference: Math.round(thisWeekStepsAvg - lastWeekStepsAvg)
             }
         },
         consistency: {

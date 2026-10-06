@@ -47,6 +47,7 @@ export default function Dashboard() {
   const [syncingWithings, setSyncingWithings] = useState(false);
 
   useEffect(() => {
+    document.title = "Your HealthHUD";
     async function loadData() {
       try {
         // Check setup status first
@@ -173,8 +174,19 @@ export default function Dashboard() {
         </div>
 
         {/* Top Left: Vitals (Orange) */}
-        <div className="border-4 lg:border-0 border-[#333] flex flex-col justify-between p-4 lg:p-6" style={{ backgroundColor: '#ef9c3f', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
-            <div className="text-center mt-2 lg:mt-4">
+        <div className="border-4 lg:border-0 border-[#333] flex flex-col justify-between p-4 lg:p-6 relative" style={{ backgroundColor: '#ef9c3f', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
+            {/* Quick Action: Manual Weight Entry (+) at top-right corner */}
+            {settings?.allowManualWeight !== false && (
+                <button 
+                    onClick={() => setShowManualWeightModal(true)}
+                    className="absolute top-2 right-2 lg:top-4 lg:right-4 z-10 text-xl lg:text-2xl font-black bg-orange-700/50 hover:bg-orange-700 text-white rounded-md w-7 h-7 flex items-center justify-center opacity-85 hover:opacity-100 transition-all leading-none shadow-sm"
+                    title="Manual Weight Entry"
+                >
+                    +
+                </button>
+            )}
+
+            <div className="text-center mt-1 lg:mt-3">
                 <h2 className="text-2xl lg:text-3xl mb-1 lg:mb-2 font-semibold">Vitals</h2>
                 <h1 className="text-6xl lg:text-7xl xl:text-8xl font-bold mb-1 lg:mb-2 uppercase leading-none">{data.vitals.weightLbs} lbs</h1>
                 <div className="flex items-center justify-center space-x-3 mt-2">
@@ -195,39 +207,48 @@ export default function Dashboard() {
                     )}
                 </div>
                 {data.vitals.lastWeightDate && (
-                    <p className="text-[11px] lg:text-xs text-orange-950/80 font-medium tracking-wide mt-1">
+                    <p className="text-[11px] lg:text-xs text-orange-950/80 font-medium tracking-wide mt-1.5">
                         Last Reading: {new Date(data.vitals.lastWeightDate).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(data.vitals.lastWeightDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
                     </p>
                 )}
             </div>
             
-            <div className="flex justify-center mt-2">
-                {settings?.allowManualWeight !== false && (
-                    <button 
-                        onClick={() => setShowManualWeightModal(true)}
-                        className="text-xs font-bold uppercase tracking-wider text-white/70 hover:text-white hover:bg-black/20 px-3 py-1 rounded transition-colors"
-                    >
-                        + Manual Weight Entry
-                    </button>
-                )}
-            </div>
-            
-            <div className="flex justify-between items-start mt-4 lg:mt-6 px-2 lg:px-4 text-base lg:text-lg font-semibold relative">
-                <div className="text-left">
-                    <p className="mb-0 lg:mb-1 uppercase text-xs lg:text-sm tracking-wide text-orange-200">Today's Steps</p>
-                    <p className="text-2xl lg:text-3xl font-bold">{(data.vitals.steps.todaySteps ?? data.vitals.steps.thisWeekDailyAvg ?? 0).toLocaleString()}</p>
-                </div>
-                
-                {/* Centered Step Count Pill */}
-                <div className="bg-black/50 text-white px-3 py-1 rounded-full text-[10px] lg:text-xs uppercase tracking-widest hidden sm:block mx-4 shadow-sm self-center">
-                    Step Count
+            {/* Steps Section: 3 Balanced Centered Tiles */}
+            <div className="grid grid-cols-3 text-center items-start pt-3 lg:pt-4 border-t border-orange-700/30 px-1 lg:px-2 mt-4">
+                {/* Tile 1: Today's Steps */}
+                <div className="flex flex-col items-center">
+                    <p className="uppercase text-[10px] lg:text-xs tracking-wider text-orange-200 font-semibold mb-0.5">Today's Steps</p>
+                    <p className="text-2xl lg:text-3xl font-bold leading-tight">
+                        {(data.vitals.steps.todaySteps ?? 0).toLocaleString()}
+                    </p>
                 </div>
 
-                <div className="text-right">
-                    <p className="uppercase text-xs lg:text-sm tracking-wide text-orange-200">This Week's Steps</p>
-                    <p className="text-2xl lg:text-3xl font-bold">{(data.vitals.steps.thisWeekTotalSteps ?? 0).toLocaleString()}</p>
-                    <p className={`text-xs lg:text-sm font-bold mt-0.5 ${(data.vitals.steps.difference ?? 0) >= 0 ? 'text-green-300' : 'text-red-200'}`}>
-                        {(data.vitals.steps.difference ?? 0) > 0 ? '+' : ''}{(data.vitals.steps.difference ?? 0).toLocaleString()} vs Last Wk ({(data.vitals.steps.lastWeekTotalSteps ?? 0).toLocaleString()})
+                {/* Tile 2: Average Daily Steps (Center Tile) */}
+                <div className="flex flex-col items-center border-x border-orange-700/40 px-1">
+                    <p className="uppercase text-[10px] lg:text-xs tracking-wider text-orange-200 font-semibold mb-0.5">Average Daily Steps</p>
+                    <p className="text-2xl lg:text-3xl font-bold leading-tight">
+                        {(data.vitals.steps.thisWeekDailyAvg ?? 0).toLocaleString()}
+                        <span className="text-xs lg:text-sm font-normal opacity-80 ml-1">/ day</span>
+                    </p>
+                    <p className={`text-[10px] lg:text-xs font-bold mt-0.5 ${
+                        (data.vitals.steps.dailyAvgDifference ?? (data.vitals.steps.thisWeekDailyAvg - data.vitals.steps.lastWeekDailyAvg)) >= 0 ? 'text-green-300' : 'text-red-200'
+                    }`}>
+                        {(data.vitals.steps.dailyAvgDifference ?? (data.vitals.steps.thisWeekDailyAvg - data.vitals.steps.lastWeekDailyAvg)) > 0 ? '+' : ''}
+                        {(data.vitals.steps.dailyAvgDifference ?? (data.vitals.steps.thisWeekDailyAvg - data.vitals.steps.lastWeekDailyAvg)).toLocaleString()} vs Last Wk ({(data.vitals.steps.lastWeekDailyAvg ?? 0).toLocaleString()})
+                    </p>
+                </div>
+
+                {/* Tile 3: This Week's Steps (Total) */}
+                <div className="flex flex-col items-center">
+                    <p className="uppercase text-[10px] lg:text-xs tracking-wider text-orange-200 font-semibold mb-0.5">This Week's Steps</p>
+                    <p className="text-2xl lg:text-3xl font-bold leading-tight">
+                        {(data.vitals.steps.thisWeekTotalSteps ?? 0).toLocaleString()}
+                    </p>
+                    <p className={`text-[10px] lg:text-xs font-bold mt-0.5 ${
+                        (data.vitals.steps.difference ?? 0) >= 0 ? 'text-green-300' : 'text-red-200'
+                    }`}>
+                        {(data.vitals.steps.difference ?? 0) > 0 ? '+' : ''}
+                        {(data.vitals.steps.difference ?? 0).toLocaleString()} vs Last Wk ({(data.vitals.steps.lastWeekTotalSteps ?? 0).toLocaleString()})
                     </p>
                 </div>
             </div>

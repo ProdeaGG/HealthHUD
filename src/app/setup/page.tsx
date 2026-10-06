@@ -8,8 +8,9 @@ export default function SetupWizard() {
   const [clientSecret, setClientSecret] = useState('');
   const [status, setStatus] = useState('');
 
-  // Check URL for step override
+  // Set browser title & check URL for step override
   React.useEffect(() => {
+    document.title = "Setup HealthHUD";
     const params = new URLSearchParams(window.location.search);
     const s = params.get('step');
     if (s) setStep(parseInt(s, 10));
