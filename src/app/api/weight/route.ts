@@ -16,10 +16,11 @@ export async function POST(request: Request) {
     // Ensure the date is saved at midnight UTC to prevent time zone shifting
     parsedDate.setUTCHours(0, 0, 0, 0);
 
+    const now = new Date();
     await prisma.weightLog.upsert({
       where: { date: parsedDate },
-      update: { weightLbs: parseFloat(weightLbs) },
-      create: { date: parsedDate, weightLbs: parseFloat(weightLbs) }
+      update: { weightLbs: parseFloat(weightLbs), measuredAt: now },
+      create: { date: parsedDate, weightLbs: parseFloat(weightLbs), measuredAt: now }
     });
 
     return NextResponse.json({ success: true });

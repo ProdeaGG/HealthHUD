@@ -1,6 +1,6 @@
 {
   "name": "health-hud",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "Personal fitness & biometrics command center designed for CasaOS, Proxmox VE, and Linux home servers.",
   "private": true,
   "scripts": {

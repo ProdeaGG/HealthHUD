@@ -77,11 +77,17 @@ export async function GET() {
     const lastWeekMetrics = recentMetrics.filter(m => m.date >= startOfLastWeek && m.date < startOfWeek);
     const rollingSevenDayMetrics = recentMetrics.filter(m => m.date >= sevenDaysAgo);
 
+    const todayMetric = recentMetrics.find(m => m.date.getTime() === today.getTime());
+    const todaySteps = todayMetric?.steps || 0;
+    const thisWeekTotalSteps = thisWeekMetrics.reduce((acc, m) => acc + (m.steps || 0), 0);
+    const lastWeekTotalSteps = lastWeekMetrics.reduce((acc, m) => acc + (m.steps || 0), 0);
+    const stepsDifference = thisWeekTotalSteps - lastWeekTotalSteps;
+
     const thisWeekStepsAvg = thisWeekMetrics.length > 0
-        ? thisWeekMetrics.reduce((acc, m) => acc + (m.steps || 0), 0) / thisWeekMetrics.length
+        ? thisWeekTotalSteps / thisWeekMetrics.length
         : 0;
     const lastWeekStepsAvg = lastWeekMetrics.length > 0
-        ? lastWeekMetrics.reduce((acc, m) => acc + (m.steps || 0), 0) / lastWeekMetrics.length
+        ? lastWeekTotalSteps / lastWeekMetrics.length
         : 0;
     
     const sleepAvg = rollingSevenDayMetrics.length > 0
@@ -276,17 +282,22 @@ export async function GET() {
         lastSynced: {
             appleHealth: settings?.lastAppleSyncAt || (recentMetrics.length > 0 ? recentMetrics[recentMetrics.length - 1].updatedAt : null),
             appleHealthStatus: settings?.lastAppleSyncStatus || null,
-            withings: settings?.lastWithingsSyncAt || latestWeight?.createdAt || null,
-            withingsStatus: settings?.lastWithingsSyncStatus || null
+            withings: settings?.lastWithingsSyncAt || null,
+            withingsStatus: settings?.lastWithingsSyncStatus || null,
+            withingsLastDataAt: settings?.lastWithingsDataAt || (latestWeight as any)?.measuredAt || latestWeight?.createdAt || null
         },
         vitals: {
             weightLbs: latestWeight?.weightLbs || 0,
             weightSevenDayAvg,
             weightTrend: weightTrendStr,
+            lastWeightDate: (latestWeight as any)?.measuredAt || latestWeight?.createdAt || latestWeight?.date || null,
             steps: {
+                todaySteps: Math.round(todaySteps),
+                thisWeekTotalSteps: Math.round(thisWeekTotalSteps),
+                lastWeekTotalSteps: Math.round(lastWeekTotalSteps),
+                difference: Math.round(stepsDifference),
                 thisWeekDailyAvg: Math.round(thisWeekStepsAvg),
-                lastWeekDailyAvg: Math.round(lastWeekStepsAvg),
-                difference: Math.round(thisWeekStepsAvg - lastWeekStepsAvg)
+                lastWeekDailyAvg: Math.round(lastWeekStepsAvg)
             }
         },
         consistency: {

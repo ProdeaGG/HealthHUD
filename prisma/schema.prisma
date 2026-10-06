@@ -24,10 +24,11 @@ model HealthMetric {
 }
 
 model WeightLog {
-  id        String   @id @default(uuid())
-  date      DateTime @unique
-  weightLbs Float
-  createdAt DateTime @default(now())
+  id         String    @id @default(uuid())
+  date       DateTime  @unique
+  weightLbs  Float
+  measuredAt DateTime?
+  createdAt  DateTime  @default(now())
 }
 
 model BodyMeasurement {
@@ -61,6 +62,7 @@ model Settings {
   lastAppleSyncStatus  String?
   lastWithingsSyncAt   DateTime?
   lastWithingsSyncStatus String?
+  lastWithingsDataAt   DateTime?
 }
 
 model Workout {

@@ -194,6 +194,11 @@ export default function Dashboard() {
                         </div>
                     )}
                 </div>
+                {data.vitals.lastWeightDate && (
+                    <p className="text-[11px] lg:text-xs text-orange-950/80 font-medium tracking-wide mt-1">
+                        Last Reading: {new Date(data.vitals.lastWeightDate).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(data.vitals.lastWeightDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                    </p>
+                )}
             </div>
             
             <div className="flex justify-center mt-2">
@@ -207,21 +212,23 @@ export default function Dashboard() {
                 )}
             </div>
             
-            <div className="flex justify-between items-center mt-4 lg:mt-6 px-2 lg:px-4 text-base lg:text-lg font-semibold relative">
+            <div className="flex justify-between items-start mt-4 lg:mt-6 px-2 lg:px-4 text-base lg:text-lg font-semibold relative">
                 <div className="text-left">
-                    <p className="mb-0 lg:mb-1 uppercase text-xs lg:text-sm tracking-wide text-orange-200">This Week Steps</p>
-                    <p className="text-2xl lg:text-3xl">{data.vitals.steps.thisWeekDailyAvg} / day</p>
+                    <p className="mb-0 lg:mb-1 uppercase text-xs lg:text-sm tracking-wide text-orange-200">Today's Steps</p>
+                    <p className="text-2xl lg:text-3xl font-bold">{(data.vitals.steps.todaySteps ?? data.vitals.steps.thisWeekDailyAvg ?? 0).toLocaleString()}</p>
                 </div>
                 
                 {/* Centered Step Count Pill */}
-                <div className="bg-black/50 text-white px-3 py-1 rounded-full text-[10px] lg:text-xs uppercase tracking-widest hidden sm:block mx-4 shadow-sm">
+                <div className="bg-black/50 text-white px-3 py-1 rounded-full text-[10px] lg:text-xs uppercase tracking-widest hidden sm:block mx-4 shadow-sm self-center">
                     Step Count
                 </div>
 
                 <div className="text-right">
-                    <p className="mb-0 lg:mb-1 text-red-200 text-sm lg:text-base">{data.vitals.steps.difference > 0 ? '+' : ''}{data.vitals.steps.difference} vs Last Wk</p>
-                    <p className="uppercase text-xs lg:text-sm tracking-wide text-orange-200">Last Week Steps</p>
-                    <p>{data.vitals.steps.lastWeekDailyAvg} / day</p>
+                    <p className="uppercase text-xs lg:text-sm tracking-wide text-orange-200">This Week's Steps</p>
+                    <p className="text-2xl lg:text-3xl font-bold">{(data.vitals.steps.thisWeekTotalSteps ?? 0).toLocaleString()}</p>
+                    <p className={`text-xs lg:text-sm font-bold mt-0.5 ${(data.vitals.steps.difference ?? 0) >= 0 ? 'text-green-300' : 'text-red-200'}`}>
+                        {(data.vitals.steps.difference ?? 0) > 0 ? '+' : ''}{(data.vitals.steps.difference ?? 0).toLocaleString()} vs Last Wk ({(data.vitals.steps.lastWeekTotalSteps ?? 0).toLocaleString()})
+                    </p>
                 </div>
             </div>
         </div>
@@ -439,30 +446,35 @@ export default function Dashboard() {
                   <span className={`block text-[10px] mt-1 ${data.lastSynced.appleHealthStatus.startsWith('OK') ? 'text-green-500' : 'text-red-400'}`}>{data.lastSynced.appleHealthStatus}</span>
               )}
           </div>
-          <div>
-              Withings: <span className="text-gray-400">{data.lastSynced?.withings ? new Date(data.lastSynced.withings).toLocaleString() : 'Never'}</span>
-              <button 
-                  onClick={async () => {
-                      setSyncingWithings(true);
-                      try {
-                          await fetch('/api/cron/withings');
-                          const res = await fetch('/api/dashboard');
-                          const json = await res.json();
-                          setData(json);
-                      } catch (e) {
-                          console.error(e);
-                      } finally {
-                          setSyncingWithings(false);
-                      }
-                  }}
-                  disabled={syncingWithings}
-                  className="ml-2 text-[10px] bg-gray-800 hover:bg-gray-700 text-green-400 px-2 py-0.5 rounded border border-gray-700 transition-colors disabled:opacity-50"
-                  title="Check Withings scale for new weigh-in now"
-              >
-                  {syncingWithings ? 'Syncing...' : 'Sync Now 🔄'}
-              </button>
+          <div className="flex flex-col items-center lg:items-end">
+              <div className="flex items-center space-x-2">
+                  <span>Withings Sync Attempt: <span className="text-gray-400">{data.lastSynced?.withings ? new Date(data.lastSynced.withings).toLocaleString() : 'Never'}</span></span>
+                  <button 
+                      onClick={async () => {
+                          setSyncingWithings(true);
+                          try {
+                              await fetch('/api/cron/withings');
+                              const res = await fetch('/api/dashboard');
+                              const json = await res.json();
+                              setData(json);
+                          } catch (e) {
+                              console.error(e);
+                          } finally {
+                              setSyncingWithings(false);
+                          }
+                      }}
+                      disabled={syncingWithings}
+                      className="text-[10px] bg-gray-800 hover:bg-gray-700 text-green-400 px-2 py-0.5 rounded border border-gray-700 transition-colors disabled:opacity-50"
+                      title="Check Withings scale for new weigh-in now"
+                  >
+                      {syncingWithings ? 'Syncing...' : 'Sync Now 🔄'}
+                  </button>
+              </div>
+              <div className="text-[11px] text-gray-400 mt-1">
+                  Last Weight Data Line Added: <span className="text-orange-300 font-semibold">{data.lastSynced?.withingsLastDataAt ? new Date(data.lastSynced.withingsLastDataAt).toLocaleString() : 'No weight data recorded yet'}</span>
+              </div>
               {data.lastSynced?.withingsStatus && (
-                  <span className={`block text-[10px] mt-1 ${data.lastSynced.withingsStatus.startsWith('OK') ? 'text-green-500' : 'text-red-400'}`}>{data.lastSynced.withingsStatus}</span>
+                  <span className={`block text-[10px] mt-0.5 ${data.lastSynced.withingsStatus.startsWith('OK') ? 'text-green-500' : 'text-red-400'}`}>{data.lastSynced.withingsStatus}</span>
               )}
           </div>
       </div>
