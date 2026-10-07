@@ -83,12 +83,15 @@ export async function GET() {
     const lastWeekTotalSteps = lastWeekMetrics.reduce((acc, m) => acc + (m.steps || 0), 0);
     const stepsDifference = thisWeekTotalSteps - lastWeekTotalSteps;
 
-    const thisWeekStepsAvg = thisWeekMetrics.length > 0
-        ? thisWeekTotalSteps / thisWeekMetrics.length
+    // Day of the week elapsed: Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6, Sun=7
+    const daysElapsedThisWeek = diffToMonday + 1;
+    const thisWeekStepsAvg = daysElapsedThisWeek > 0
+        ? Math.round(thisWeekTotalSteps / daysElapsedThisWeek)
         : 0;
     const lastWeekStepsAvg = lastWeekMetrics.length > 0
-        ? lastWeekTotalSteps / lastWeekMetrics.length
+        ? Math.round(lastWeekTotalSteps / 7)
         : 0;
+    const dailyAvgDifference = thisWeekStepsAvg - lastWeekStepsAvg;
     
     const sleepAvg = rollingSevenDayMetrics.length > 0
         ? rollingSevenDayMetrics.reduce((acc, m) => acc + (m.sleepHours || 0), 0) / rollingSevenDayMetrics.length
@@ -309,8 +312,8 @@ export async function GET() {
             strengthTarget: getGoal('StrengthSessions') || 4,
             strengthWorkoutsByDay,
             strengthWorkouts: allStrengthWorkouts,
-            dailyBurnAvg: thisWeekMetrics.length > 0 
-                ? thisWeekMetrics.reduce((acc, m) => acc + (m.caloriesBurned || 0), 0) / thisWeekMetrics.length 
+            dailyBurnAvg: daysElapsedThisWeek > 0 
+                ? thisWeekMetrics.reduce((acc, m) => acc + (m.caloriesBurned || 0), 0) / daysElapsedThisWeek 
                 : 0,
             heartRateAvg: cardioHrAvg,
             cardioSessions: cardioWorkoutsList.length > 0

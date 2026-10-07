@@ -1,22 +1,18 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.9.1"
+VERSION="v1.9.2"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • VITALS RE-ALIGNMENT & DESIGN POLISH:"
-echo "    - Centered Balance: Vitals quadrant cleanly centered with breathing room."
-echo "    - Corner Manual Entry (+): Replaced bulky center button with a discrete"
-echo "      '+' icon in the top-right corner of the Vitals card."
-echo "    - 3-Tile Steps Grid: Balanced layout with Today's Steps, Average Daily Steps"
-echo "      (with delta vs last week's daily avg), and This Week's Steps (total)."
-echo "  • BROWSER HEADER / TAB TITLES:"
-echo "    - Browser tab title updated to 'Your HealthHUD' on the dashboard and"
-echo "      'Setup HealthHUD' on the onboarding wizard."
+echo "  • ACCURATE DAYS-ELAPSED DAILY STEP AVERAGE:"
+echo "    - Average Daily Steps now calculates using elapsed days of the week"
+echo "      (Monday = Total / 1, Tuesday = Total / 2, Wednesday = Total / 3...)."
+echo "    - Compares accurately against last week's full 7-day daily average."
+echo "    - Applies the same elapsed-day calculation to weekly daily burn."
 echo "====================================================="
 echo ""
 
