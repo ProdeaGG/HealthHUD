@@ -1,18 +1,23 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.9.2"
+VERSION="v1.10.0"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • ACCURATE DAYS-ELAPSED DAILY STEP AVERAGE:"
-echo "    - Average Daily Steps now calculates using elapsed days of the week"
-echo "      (Monday = Total / 1, Tuesday = Total / 2, Wednesday = Total / 3...)."
-echo "    - Compares accurately against last week's full 7-day daily average."
-echo "    - Applies the same elapsed-day calculation to weekly daily burn."
+echo "  • GLOWING WEIGHT SPARKLINE CURVE (Vitals):"
+echo "    - Replaced text-only rolling average with a sleek teal SVG sparkline"
+echo "      curve mapped Monday through Sunday with interactive hover data points."
+echo "  • 7 LIQUID STEP GOAL MILESTONE VESSELS:"
+echo "    - Added a 7-day milestone track (Mon-Sun) above the steps grid."
+echo "    - Circles fill bottom-to-top with fluid liquid as steps are logged."
+echo "    - Reaching the daily step goal illuminates the vessel with a vivid"
+echo "      neon-green glowing border outline and completion glyph."
+echo "  • CONFIGURABLE DAILY STEP GOAL:"
+echo "    - Set your daily step goal in Goals and Global Settings (default: 10,000 steps)."
 echo "====================================================="
 echo ""
 

@@ -30,7 +30,8 @@ export default function Dashboard() {
     waistStart: '',
     biceps: '',
     bicepsStart: '',
-    strength: ''
+    strength: '',
+    stepGoal: ''
   });
 
   // Floating Popover / Tooltip State
@@ -96,7 +97,8 @@ export default function Dashboard() {
           waistStart: waistM?.start || '',
           biceps: bicepsM?.goal || '',
           bicepsStart: bicepsM?.start || '',
-          strength: data?.consistency?.strengthTarget || ''
+          strength: data?.consistency?.strengthTarget || '',
+          stepGoal: data?.vitals?.stepGoal || '10000'
       });
       setShowGoalModal(true);
   };
@@ -110,7 +112,8 @@ export default function Dashboard() {
                   Chest: { target: parseFloat(goalForm.chest), start: parseFloat(goalForm.chestStart) },
                   Waist: { target: parseFloat(goalForm.waist), start: parseFloat(goalForm.waistStart) },
                   Biceps: { target: parseFloat(goalForm.biceps), start: parseFloat(goalForm.bicepsStart) },
-                  StrengthSessions: parseInt(goalForm.strength)
+                  StrengthSessions: parseInt(goalForm.strength),
+                  StepGoal: parseInt(goalForm.stepGoal) || 10000
               }
           })
       });
@@ -174,77 +177,254 @@ export default function Dashboard() {
         </div>
 
         {/* Top Left: Vitals (Orange) */}
-        <div className="border-4 lg:border-0 border-[#333] flex flex-col justify-between p-4 lg:p-6 relative" style={{ backgroundColor: '#ef9c3f', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
+        <div className="border-4 lg:border-0 border-[#333] flex flex-col justify-between p-3.5 lg:p-5 relative" style={{ backgroundColor: '#ef9c3f', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
             {/* Quick Action: Manual Weight Entry (+) at top-right corner */}
             {settings?.allowManualWeight !== false && (
                 <button 
                     onClick={() => setShowManualWeightModal(true)}
-                    className="absolute top-2 right-2 lg:top-4 lg:right-4 z-10 text-xl lg:text-2xl font-black bg-orange-700/50 hover:bg-orange-700 text-white rounded-md w-7 h-7 flex items-center justify-center opacity-85 hover:opacity-100 transition-all leading-none shadow-sm"
+                    className="absolute top-2.5 right-2.5 lg:top-3.5 lg:right-3.5 z-10 text-xl font-black bg-orange-700/50 hover:bg-orange-700 text-white rounded-md w-7 h-7 flex items-center justify-center opacity-85 hover:opacity-100 transition-all leading-none shadow-sm"
                     title="Manual Weight Entry"
                 >
                     +
                 </button>
             )}
 
-            <div className="text-center mt-1 lg:mt-3">
-                <h2 className="text-2xl lg:text-3xl mb-1 lg:mb-2 font-semibold">Vitals</h2>
-                <h1 className="text-6xl lg:text-7xl xl:text-8xl font-bold mb-1 lg:mb-2 uppercase leading-none">{data.vitals.weightLbs} lbs</h1>
-                <div className="flex items-center justify-center space-x-3 mt-2">
-                    <p className="text-sm lg:text-base font-medium opacity-90 uppercase tracking-widest text-orange-200">
-                        7-Day Rolling Avg: {data.vitals.weightSevenDayAvg || data.vitals.weightLbs} lbs
-                    </p>
+            {/* Top Section: Weight Header & Interactive Sparkline */}
+            <div className="text-center">
+                <h2 className="text-xl lg:text-2xl font-semibold mb-0.5">Vitals</h2>
+                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black uppercase leading-none tracking-tight">{data.vitals.weightLbs} lbs</h1>
+                
+                {/* Smooth Glowing Weight Sparkline */}
+                {(() => {
+                    const history = data.vitals.weightHistory || [];
+                    const validWeights = history.filter((d: any) => typeof d.weight === 'number' && d.weight > 0);
+                    
+                    const svgW = 260;
+                    const svgH = 30;
+                    const padX = 16;
+                    const padY = 5;
+                    const usableW = svgW - (padX * 2);
+                    const usableH = svgH - (padY * 2);
+
+                    let minW = validWeights.length > 0 ? Math.min(...validWeights.map((d: any) => d.weight)) : 0;
+                    let maxW = validWeights.length > 0 ? Math.max(...validWeights.map((d: any) => d.weight)) : 1;
+                    if (minW === maxW) {
+                        minW -= 1;
+                        maxW += 1;
+                    }
+                    const range = maxW - minW;
+
+                    const coords = history.map((d: any, idx: number) => {
+                        const x = padX + (idx / 6) * usableW;
+                        if (d.weight === null || d.weight === undefined) {
+                            return { ...d, x, y: null };
+                        }
+                        const y = padY + (1 - (d.weight - minW) / range) * usableH;
+                        return { ...d, x, y };
+                    });
+
+                    const recordedCoords = coords.filter((c: any) => c.y !== null);
+
+                    let linePath = '';
+                    let areaPath = '';
+
+                    if (recordedCoords.length === 1) {
+                        const pt = recordedCoords[0];
+                        linePath = `M ${pt.x - 14} ${pt.y} L ${pt.x + 14} ${pt.y}`;
+                        areaPath = `M ${pt.x - 14} ${pt.y} L ${pt.x + 14} ${pt.y} L ${pt.x + 14} ${svgH} L ${pt.x - 14} ${svgH} Z`;
+                    } else if (recordedCoords.length > 1) {
+                        linePath = `M ${recordedCoords[0].x} ${recordedCoords[0].y}`;
+                        for (let i = 1; i < recordedCoords.length; i++) {
+                            const prev = recordedCoords[i - 1];
+                            const curr = recordedCoords[i];
+                            const cpX = (prev.x + curr.x) / 2;
+                            linePath += ` C ${cpX} ${prev.y}, ${cpX} ${curr.y}, ${curr.x} ${curr.y}`;
+                        }
+                        const first = recordedCoords[0];
+                        const last = recordedCoords[recordedCoords.length - 1];
+                        areaPath = `${linePath} L ${last.x} ${svgH} L ${first.x} ${svgH} Z`;
+                    }
+
+                    return (
+                        <div className="w-full flex justify-center my-0.5">
+                            <svg viewBox={`0 0 ${svgW} ${svgH + 4}`} className="w-full max-w-[270px] h-9 overflow-visible">
+                                <defs>
+                                    <linearGradient id="vitalsWeightGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.45" />
+                                        <stop offset="100%" stopColor="#2dd4bf" stopOpacity="0.0" />
+                                    </linearGradient>
+                                    <filter id="vitalsNeonGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="2" result="blur" />
+                                        <feMerge>
+                                            <feMergeNode in="blur" />
+                                            <feMergeNode in="SourceGraphic" />
+                                        </feMerge>
+                                    </filter>
+                                </defs>
+
+                                <line x1={padX} y1={svgH} x2={svgW - padX} y2={svgH} stroke="rgba(0,0,0,0.18)" strokeWidth="1" strokeDasharray="3 3" />
+                                {areaPath && <path d={areaPath} fill="url(#vitalsWeightGrad)" />}
+                                {linePath && <path d={linePath} fill="none" stroke="#2dd4bf" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#vitalsNeonGlow)" />}
+
+                                {coords.map((c: any, idx: number) => {
+                                    const hasWeight = c.y !== null;
+                                    return (
+                                        <g 
+                                            key={idx}
+                                            className="cursor-pointer"
+                                            onMouseEnter={(e) => {
+                                                setHoverTooltip({
+                                                    visible: true,
+                                                    x: e.clientX,
+                                                    y: e.clientY,
+                                                    title: `${c.dayFull} Weigh-in`,
+                                                    rows: [
+                                                        hasWeight ? `${c.date} - ${c.weight.toFixed(1)} LBS` : `${c.date} - No weigh-in recorded`
+                                                    ]
+                                                });
+                                            }}
+                                            onMouseMove={(e) => {
+                                                setHoverTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                                            }}
+                                            onMouseLeave={() => setHoverTooltip(null)}
+                                        >
+                                            {/* Larger hit target for effortless hover */}
+                                            <circle cx={c.x} cy={hasWeight ? c.y : svgH} r="10" fill="transparent" />
+                                            {hasWeight ? (
+                                                <circle cx={c.x} cy={c.y} r="3" className="fill-white stroke-[#0d9488] stroke-2" filter="url(#vitalsNeonGlow)" />
+                                            ) : (
+                                                <circle cx={c.x} cy={svgH} r="1.5" fill="rgba(0,0,0,0.25)" />
+                                            )}
+                                        </g>
+                                    );
+                                })}
+                            </svg>
+                        </div>
+                    );
+                })()}
+
+                {/* Single Context Pill Badge */}
+                <div className="flex items-center justify-center space-x-2 text-xs my-0.5">
                     {data.vitals.weightTrend ? (
-                        <div className={`px-2 py-0.5 rounded text-xs font-bold tracking-widest bg-black/40 ${
+                        <div className={`px-2 py-0.5 rounded text-[10px] lg:text-[11px] font-bold tracking-wider bg-black/40 ${
                             parseFloat(data.vitals.weightTrend) < 0 ? 'text-green-400' : 
                             parseFloat(data.vitals.weightTrend) > 0 ? 'text-red-400' : 'text-gray-400'
                         }`}>
-                            {parseFloat(data.vitals.weightTrend) < 0 ? '↓' : parseFloat(data.vitals.weightTrend) > 0 ? '↑' : '-'} {Math.abs(parseFloat(data.vitals.weightTrend)).toFixed(1)} LBS
+                            {parseFloat(data.vitals.weightTrend) < 0 ? '↓' : parseFloat(data.vitals.weightTrend) > 0 ? '↑' : '-'} {Math.abs(parseFloat(data.vitals.weightTrend)).toFixed(1)} LBS vs Last Wk
                         </div>
                     ) : (
-                        <div className="px-2 py-0.5 rounded text-[10px] lg:text-xs font-bold tracking-widest bg-black/30 text-white/70 italic">
+                        <div className="px-2 py-0.5 rounded text-[10px] font-bold tracking-widest bg-black/30 text-white/70 italic">
                             WEIGH DAILY TO UNLOCK TREND
                         </div>
                     )}
+                    <span className="text-[11px] lg:text-xs font-semibold text-orange-100 opacity-90">
+                        7D Avg: {data.vitals.weightSevenDayAvg || data.vitals.weightLbs} lbs
+                    </span>
                 </div>
-                {data.vitals.lastWeightDate && (
-                    <p className="text-[11px] lg:text-xs text-orange-950/80 font-medium tracking-wide mt-1.5">
-                        Last Reading: {new Date(data.vitals.lastWeightDate).toLocaleDateString([], { month: 'short', day: 'numeric' })} at {new Date(data.vitals.lastWeightDate).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
-                    </p>
-                )}
             </div>
             
-            {/* Steps Section: 3 Balanced Centered Tiles */}
-            <div className="grid grid-cols-3 text-center items-start pt-3 lg:pt-4 border-t border-orange-700/30 px-1 lg:px-2 mt-4">
+            {/* Middle Section: 7 Mon-Sun Step Goal Vessels (Liquid Bottom-to-Top Fill + Neon Glow) */}
+            <div className="w-full max-w-[280px] mx-auto my-1 py-1 border-t border-orange-700/30">
+                <div className="flex justify-between items-center px-1">
+                    {(data.vitals.stepsByDay || []).map((d: any, idx: number) => {
+                        const isGoalMet = d.completed;
+                        const pct = Math.min(100, Math.max(0, d.percent || 0));
+                        const stepGoal = data.vitals.stepGoal || 10000;
+
+                        return (
+                            <div 
+                                key={idx}
+                                className="flex flex-col items-center cursor-pointer group"
+                                onMouseEnter={(e) => {
+                                    setHoverTooltip({
+                                        visible: true,
+                                        x: e.clientX,
+                                        y: e.clientY,
+                                        title: `${d.dayFull} Steps`,
+                                        headerLine: 'Date - Steps - Goal Progress',
+                                        rows: [
+                                            `${d.date} - ${d.steps.toLocaleString()} / ${stepGoal.toLocaleString()} steps (${pct}%)`,
+                                            isGoalMet ? '⭐ Daily Step Goal Achieved (100%)' : `${(stepGoal - d.steps).toLocaleString()} steps to target`
+                                        ]
+                                    });
+                                }}
+                                onMouseMove={(e) => {
+                                    setHoverTooltip(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null);
+                                }}
+                                onMouseLeave={() => setHoverTooltip(null)}
+                            >
+                                {/* Circle Vessel */}
+                                <div 
+                                    className={`relative w-7 h-7 rounded-full overflow-hidden transition-all flex items-center justify-center ${
+                                        isGoalMet 
+                                            ? 'border-2 border-green-400 shadow-[0_0_12px_#4ade80] ring-1 ring-green-300/90 bg-black/60 scale-105' 
+                                            : pct > 0 
+                                                ? 'border-2 border-orange-200/50 bg-black/40 shadow-inner group-hover:border-orange-100' 
+                                                : 'border-2 border-black/30 bg-black/25'
+                                    }`}
+                                >
+                                    {/* Bottom-to-Top Liquid Fill */}
+                                    <div 
+                                        className={`absolute bottom-0 left-0 right-0 transition-all duration-700 ease-out ${
+                                            isGoalMet 
+                                                ? 'bg-gradient-to-t from-green-500 to-emerald-400' 
+                                                : 'bg-gradient-to-t from-amber-500/90 to-yellow-300/90'
+                                        }`}
+                                        style={{ height: `${pct}%` }}
+                                    />
+
+                                    {/* Center Glyph: Crisp checkmark when completed */}
+                                    {isGoalMet && (
+                                        <span className="relative z-10 text-[11px] text-black font-black select-none drop-shadow">✓</span>
+                                    )}
+                                </div>
+                                <span className={`text-[10px] font-bold mt-1 tracking-tight transition-colors select-none ${
+                                    isGoalMet 
+                                        ? 'text-green-300 font-extrabold drop-shadow-[0_0_6px_rgba(74,222,128,0.7)]' 
+                                        : pct > 0 
+                                            ? 'text-white' 
+                                            : 'text-orange-200/60'
+                                }`}>
+                                    {d.day}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Bottom Section: 3 Balanced Centered Step Tiles */}
+            <div className="grid grid-cols-3 text-center items-start pt-2 border-t border-orange-700/30 px-1">
                 {/* Tile 1: Today's Steps */}
                 <div className="flex flex-col items-center">
-                    <p className="uppercase text-[10px] lg:text-xs tracking-wider text-orange-200 font-semibold mb-0.5">Today's Steps</p>
-                    <p className="text-2xl lg:text-3xl font-bold leading-tight">
+                    <p className="uppercase text-[9px] lg:text-[10px] tracking-wider text-orange-200 font-semibold mb-0.5">Today's Steps</p>
+                    <p className="text-xl lg:text-2xl font-bold leading-tight">
                         {(data.vitals.steps.todaySteps ?? 0).toLocaleString()}
                     </p>
                 </div>
 
                 {/* Tile 2: Average Daily Steps (Center Tile) */}
                 <div className="flex flex-col items-center border-x border-orange-700/40 px-1">
-                    <p className="uppercase text-[10px] lg:text-xs tracking-wider text-orange-200 font-semibold mb-0.5">Average Daily Steps</p>
-                    <p className="text-2xl lg:text-3xl font-bold leading-tight">
+                    <p className="uppercase text-[9px] lg:text-[10px] tracking-wider text-orange-200 font-semibold mb-0.5">Avg Daily Steps</p>
+                    <p className="text-xl lg:text-2xl font-bold leading-tight">
                         {(data.vitals.steps.thisWeekDailyAvg ?? 0).toLocaleString()}
-                        <span className="text-xs lg:text-sm font-normal opacity-80 ml-1">/ day</span>
+                        <span className="text-[10px] font-normal opacity-80 ml-0.5">/d</span>
                     </p>
-                    <p className={`text-[10px] lg:text-xs font-bold mt-0.5 ${
-                        (data.vitals.steps.dailyAvgDifference ?? (data.vitals.steps.thisWeekDailyAvg - data.vitals.steps.lastWeekDailyAvg)) >= 0 ? 'text-green-300' : 'text-red-200'
+                    <p className={`text-[9px] lg:text-[10px] font-bold mt-0.5 ${
+                        (data.vitals.steps.dailyAvgDifference ?? 0) >= 0 ? 'text-green-300' : 'text-red-200'
                     }`}>
-                        {(data.vitals.steps.dailyAvgDifference ?? (data.vitals.steps.thisWeekDailyAvg - data.vitals.steps.lastWeekDailyAvg)) > 0 ? '+' : ''}
-                        {(data.vitals.steps.dailyAvgDifference ?? (data.vitals.steps.thisWeekDailyAvg - data.vitals.steps.lastWeekDailyAvg)).toLocaleString()} vs Last Wk ({(data.vitals.steps.lastWeekDailyAvg ?? 0).toLocaleString()})
+                        {(data.vitals.steps.dailyAvgDifference ?? 0) > 0 ? '+' : ''}
+                        {(data.vitals.steps.dailyAvgDifference ?? 0).toLocaleString()} vs Last Wk ({(data.vitals.steps.lastWeekDailyAvg ?? 0).toLocaleString()})
                     </p>
                 </div>
 
                 {/* Tile 3: This Week's Steps (Total) */}
                 <div className="flex flex-col items-center">
-                    <p className="uppercase text-[10px] lg:text-xs tracking-wider text-orange-200 font-semibold mb-0.5">This Week's Steps</p>
-                    <p className="text-2xl lg:text-3xl font-bold leading-tight">
+                    <p className="uppercase text-[9px] lg:text-[10px] tracking-wider text-orange-200 font-semibold mb-0.5">This Week's Steps</p>
+                    <p className="text-xl lg:text-2xl font-bold leading-tight">
                         {(data.vitals.steps.thisWeekTotalSteps ?? 0).toLocaleString()}
                     </p>
-                    <p className={`text-[10px] lg:text-xs font-bold mt-0.5 ${
+                    <p className={`text-[9px] lg:text-[10px] font-bold mt-0.5 ${
                         (data.vitals.steps.difference ?? 0) >= 0 ? 'text-green-300' : 'text-red-200'
                     }`}>
                         {(data.vitals.steps.difference ?? 0) > 0 ? '+' : ''}
@@ -569,6 +749,35 @@ export default function Dashboard() {
                           </label>
                       </div>
 
+                      {/* Section 2.7: Step Goal Setting */}
+                      <div className="bg-gray-900 p-4 rounded border border-gray-700 shadow-inner">
+                          <h3 className="text-xl font-semibold mb-2 text-yellow-300">Daily Step Goal Target</h3>
+                          <p className="text-sm text-gray-400 mb-3">Set your daily target to power the 7-day glowing progress rings in Vitals.</p>
+                          <div className="flex items-center space-x-3">
+                              <input 
+                                  type="number" 
+                                  step="500"
+                                  defaultValue={data?.vitals?.stepGoal || 10000}
+                                  onBlur={async (e) => {
+                                      const val = parseInt(e.target.value);
+                                      if (!isNaN(val) && val > 0) {
+                                          await fetch('/api/setup', {
+                                              method: 'POST',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({ goals: { StepGoal: val } })
+                                          });
+                                          const res = await fetch('/api/dashboard');
+                                          const json = await res.json();
+                                          setData(json);
+                                      }
+                                  }}
+                                  className="w-48 bg-black/50 border border-gray-600 p-2.5 rounded text-white text-sm outline-none focus:border-yellow-400"
+                                  placeholder="e.g. 10000"
+                              />
+                              <span className="text-xs text-gray-400">steps / day</span>
+                          </div>
+                      </div>
+
                       {/* Section 3: V2 Features Placeholder */}
                       <div className="bg-gray-900 p-4 rounded border border-gray-700 opacity-60 shadow-inner">
                           <h3 className="text-xl font-semibold mb-2 text-pink-300">V2 Dashboard Themes</h3>
@@ -678,6 +887,19 @@ export default function Dashboard() {
                                   />
                               </div>
                           </div>
+                      </div>
+
+                      {/* Daily Step Goal */}
+                      <div className="bg-blue-950/60 p-3.5 rounded-lg border border-blue-800">
+                          <label className="block text-sm font-bold text-blue-200 mb-1">Daily Step Goal (Vitals Track)</label>
+                          <input 
+                              type="number" 
+                              step="500"
+                              value={goalForm.stepGoal} 
+                              onChange={e => setGoalForm({...goalForm, stepGoal: e.target.value})} 
+                              placeholder="e.g. 10000" 
+                              className="w-full bg-black/40 border border-blue-600 rounded p-2.5 text-white text-sm outline-none focus:border-blue-300" 
+                          />
                       </div>
 
                       {/* Strength Sessions */}

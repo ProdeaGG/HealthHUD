@@ -132,6 +132,50 @@ export async function GET() {
     // getDay() returns 0 for Sunday, 1 for Monday... 
     // We want Mon=0, Tue=1, ..., Sun=6
     const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    const fullDayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    // Weight sparkline data for Monday through Sunday
+    const currentWeekWeights = recentWeights.filter(w => w.date >= startOfWeek && w.date < endOfWeek);
+    const weightMap = new Map(currentWeekWeights.map(w => {
+        let d = w.date.getUTCDay();
+        d = d === 0 ? 6 : d - 1;
+        return [d, w.weightLbs];
+    }));
+    const weekWeightByDay = [0, 1, 2, 3, 4, 5, 6].map(i => {
+        const d = new Date(startOfWeek);
+        d.setUTCDate(startOfWeek.getUTCDate() + i);
+        const dateStr = `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+        return {
+            day: dayNames[i],
+            dayFull: fullDayNames[i],
+            date: dateStr,
+            weight: weightMap.get(i) ?? null
+        };
+    });
+
+    // Step Goal and 7-day Step rings (Mon-Sun)
+    const stepGoal = getGoal('StepGoal') || getGoal('DailySteps') || 10000;
+    const stepsMap = new Map(thisWeekMetrics.map(m => {
+        let d = m.date.getUTCDay();
+        d = d === 0 ? 6 : d - 1;
+        return [d, m.steps || 0];
+    }));
+    const weekStepsByDay = [0, 1, 2, 3, 4, 5, 6].map(i => {
+        const d = new Date(startOfWeek);
+        d.setUTCDate(startOfWeek.getUTCDate() + i);
+        const dateStr = `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+        const steps = stepsMap.get(i) || 0;
+        const percent = Math.min(100, Math.round((steps / stepGoal) * 100));
+        return {
+            day: dayNames[i],
+            dayFull: fullDayNames[i],
+            date: dateStr,
+            steps,
+            completed: steps >= stepGoal && steps > 0,
+            percent
+        };
+    });
+
     const sleepMap = new Map(thisWeekMetrics.map(m => {
         let d = m.date.getUTCDay();
         d = d === 0 ? 6 : d - 1; // Convert to Mon=0, Sun=6
@@ -294,6 +338,9 @@ export async function GET() {
             weightSevenDayAvg,
             weightTrend: weightTrendStr,
             lastWeightDate: (latestWeight as any)?.measuredAt || latestWeight?.createdAt || latestWeight?.date || null,
+            weightHistory: weekWeightByDay,
+            stepGoal,
+            stepsByDay: weekStepsByDay,
             steps: {
                 todaySteps: Math.round(todaySteps),
                 thisWeekTotalSteps: Math.round(thisWeekTotalSteps),
