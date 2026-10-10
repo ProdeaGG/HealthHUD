@@ -1,23 +1,18 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.10.0"
+VERSION="v1.10.1"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • GLOWING WEIGHT SPARKLINE CURVE (Vitals):"
-echo "    - Replaced text-only rolling average with a sleek teal SVG sparkline"
-echo "      curve mapped Monday through Sunday with interactive hover data points."
-echo "  • 7 LIQUID STEP GOAL MILESTONE VESSELS:"
-echo "    - Added a 7-day milestone track (Mon-Sun) above the steps grid."
-echo "    - Circles fill bottom-to-top with fluid liquid as steps are logged."
-echo "    - Reaching the daily step goal illuminates the vessel with a vivid"
-echo "      neon-green glowing border outline and completion glyph."
-echo "  • CONFIGURABLE DAILY STEP GOAL:"
-echo "    - Set your daily step goal in Goals and Global Settings (default: 10,000 steps)."
+echo "  • FULL-WIDTH VITALS SPARKLINE & MILESTONE TRACK:"
+echo "    - Expanded the SVG weight sparkline across the full card width,"
+echo "      eliminating middle-scrunching and rendering a wide telemetry curve."
+echo "    - Expanded the 7 daily milestone vessels into an edge-to-edge 7-column track."
+echo "    - Mon-Sun points on the sparkline now align with the 7 step vessels below."
 echo "====================================================="
 echo ""
 

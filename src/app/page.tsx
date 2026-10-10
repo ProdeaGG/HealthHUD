@@ -199,11 +199,9 @@ export default function Dashboard() {
                     const history = data.vitals.weightHistory || [];
                     const validWeights = history.filter((d: any) => typeof d.weight === 'number' && d.weight > 0);
                     
-                    const svgW = 260;
-                    const svgH = 30;
-                    const padX = 16;
+                    const svgW = 700;
+                    const svgH = 34;
                     const padY = 5;
-                    const usableW = svgW - (padX * 2);
                     const usableH = svgH - (padY * 2);
 
                     let minW = validWeights.length > 0 ? Math.min(...validWeights.map((d: any) => d.weight)) : 0;
@@ -214,8 +212,10 @@ export default function Dashboard() {
                     }
                     const range = maxW - minW;
 
+                    // Each day's node is centered at exactly (idx + 0.5) / 7 of svgW,
+                    // perfectly matching the 7-column step rings grid directly underneath it!
                     const coords = history.map((d: any, idx: number) => {
-                        const x = padX + (idx / 6) * usableW;
+                        const x = ((idx + 0.5) / 7) * svgW;
                         if (d.weight === null || d.weight === undefined) {
                             return { ...d, x, y: null };
                         }
@@ -230,8 +230,8 @@ export default function Dashboard() {
 
                     if (recordedCoords.length === 1) {
                         const pt = recordedCoords[0];
-                        linePath = `M ${pt.x - 14} ${pt.y} L ${pt.x + 14} ${pt.y}`;
-                        areaPath = `M ${pt.x - 14} ${pt.y} L ${pt.x + 14} ${pt.y} L ${pt.x + 14} ${svgH} L ${pt.x - 14} ${svgH} Z`;
+                        linePath = `M ${pt.x - 35} ${pt.y} L ${pt.x + 35} ${pt.y}`;
+                        areaPath = `M ${pt.x - 35} ${pt.y} L ${pt.x + 35} ${pt.y} L ${pt.x + 35} ${svgH} L ${pt.x - 35} ${svgH} Z`;
                     } else if (recordedCoords.length > 1) {
                         linePath = `M ${recordedCoords[0].x} ${recordedCoords[0].y}`;
                         for (let i = 1; i < recordedCoords.length; i++) {
@@ -246,15 +246,15 @@ export default function Dashboard() {
                     }
 
                     return (
-                        <div className="w-full flex justify-center my-0.5">
-                            <svg viewBox={`0 0 ${svgW} ${svgH + 4}`} className="w-full max-w-[270px] h-9 overflow-visible">
+                        <div className="w-full px-1 lg:px-3 my-1">
+                            <svg viewBox={`0 0 ${svgW} ${svgH + 4}`} className="w-full h-10 lg:h-11 overflow-visible">
                                 <defs>
                                     <linearGradient id="vitalsWeightGrad" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.45" />
                                         <stop offset="100%" stopColor="#2dd4bf" stopOpacity="0.0" />
                                     </linearGradient>
                                     <filter id="vitalsNeonGlow" x="-20%" y="-20%" width="140%" height="140%">
-                                        <feGaussianBlur stdDeviation="2" result="blur" />
+                                        <feGaussianBlur stdDeviation="2.5" result="blur" />
                                         <feMerge>
                                             <feMergeNode in="blur" />
                                             <feMergeNode in="SourceGraphic" />
@@ -262,9 +262,10 @@ export default function Dashboard() {
                                     </filter>
                                 </defs>
 
-                                <line x1={padX} y1={svgH} x2={svgW - padX} y2={svgH} stroke="rgba(0,0,0,0.18)" strokeWidth="1" strokeDasharray="3 3" />
+                                {/* Dashed Baseline spanning Monday to Sunday centers */}
+                                <line x1={(0.5 / 7) * svgW} y1={svgH} x2={(6.5 / 7) * svgW} y2={svgH} stroke="rgba(0,0,0,0.18)" strokeWidth="1.5" strokeDasharray="4 4" />
                                 {areaPath && <path d={areaPath} fill="url(#vitalsWeightGrad)" />}
-                                {linePath && <path d={linePath} fill="none" stroke="#2dd4bf" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" filter="url(#vitalsNeonGlow)" />}
+                                {linePath && <path d={linePath} fill="none" stroke="#2dd4bf" strokeWidth="2.75" strokeLinecap="round" strokeLinejoin="round" filter="url(#vitalsNeonGlow)" />}
 
                                 {coords.map((c: any, idx: number) => {
                                     const hasWeight = c.y !== null;
@@ -289,11 +290,11 @@ export default function Dashboard() {
                                             onMouseLeave={() => setHoverTooltip(null)}
                                         >
                                             {/* Larger hit target for effortless hover */}
-                                            <circle cx={c.x} cy={hasWeight ? c.y : svgH} r="10" fill="transparent" />
+                                            <circle cx={c.x} cy={hasWeight ? c.y : svgH} r="20" fill="transparent" />
                                             {hasWeight ? (
-                                                <circle cx={c.x} cy={c.y} r="3" className="fill-white stroke-[#0d9488] stroke-2" filter="url(#vitalsNeonGlow)" />
+                                                <circle cx={c.x} cy={c.y} r="3.5" className="fill-white stroke-[#0d9488] stroke-2" filter="url(#vitalsNeonGlow)" />
                                             ) : (
-                                                <circle cx={c.x} cy={svgH} r="1.5" fill="rgba(0,0,0,0.25)" />
+                                                <circle cx={c.x} cy={svgH} r="2" fill="rgba(0,0,0,0.25)" />
                                             )}
                                         </g>
                                     );
@@ -324,8 +325,8 @@ export default function Dashboard() {
             </div>
             
             {/* Middle Section: 7 Mon-Sun Step Goal Vessels (Liquid Bottom-to-Top Fill + Neon Glow) */}
-            <div className="w-full max-w-[280px] mx-auto my-1 py-1 border-t border-orange-700/30">
-                <div className="flex justify-between items-center px-1">
+            <div className="w-full my-1 py-1.5 border-t border-orange-700/30 px-1 lg:px-3">
+                <div className="grid grid-cols-7 w-full text-center">
                     {(data.vitals.stepsByDay || []).map((d: any, idx: number) => {
                         const isGoalMet = d.completed;
                         const pct = Math.min(100, Math.max(0, d.percent || 0));
@@ -355,7 +356,7 @@ export default function Dashboard() {
                             >
                                 {/* Circle Vessel */}
                                 <div 
-                                    className={`relative w-7 h-7 rounded-full overflow-hidden transition-all flex items-center justify-center ${
+                                    className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden transition-all flex items-center justify-center ${
                                         isGoalMet 
                                             ? 'border-2 border-green-400 shadow-[0_0_12px_#4ade80] ring-1 ring-green-300/90 bg-black/60 scale-105' 
                                             : pct > 0 
@@ -378,7 +379,7 @@ export default function Dashboard() {
                                         <span className="relative z-10 text-[11px] text-black font-black select-none drop-shadow">✓</span>
                                     )}
                                 </div>
-                                <span className={`text-[10px] font-bold mt-1 tracking-tight transition-colors select-none ${
+                                <span className={`text-[10px] lg:text-[11px] font-bold mt-1 tracking-tight transition-colors select-none ${
                                     isGoalMet 
                                         ? 'text-green-300 font-extrabold drop-shadow-[0_0_6px_rgba(74,222,128,0.7)]' 
                                         : pct > 0 
