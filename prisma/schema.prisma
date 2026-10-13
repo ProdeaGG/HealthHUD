@@ -14,6 +14,7 @@ model HealthMetric {
   steps            Int?
   caloriesBurned   Int?
   sleepHours       Float?
+  sleepManual      Boolean  @default(false)
   restingHeartRate Float?
   cardioSessions   Int      @default(0)
   cardioMinutes    Int      @default(0)

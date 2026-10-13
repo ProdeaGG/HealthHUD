@@ -13,6 +13,22 @@ export default function Dashboard() {
   const [showGlobalSettingsModal, setShowGlobalSettingsModal] = useState(false);
   const [showManualWeightModal, setShowManualWeightModal] = useState(false);
   const [showMeasurementModal, setShowMeasurementModal] = useState(false);
+  const [showSleepModal, setShowSleepModal] = useState(false);
+  const [sleepEditForm, setSleepEditForm] = useState<{
+    date: string;
+    dateFormatted: string;
+    dayFull: string;
+    hours: string;
+    isManual: boolean;
+  }>({
+    date: '',
+    dateFormatted: '',
+    dayFull: '',
+    hours: '',
+    isManual: false
+  });
+  const [savingSleep, setSavingSleep] = useState(false);
+  const [hoveredSleepDay, setHoveredSleepDay] = useState<number | null>(null);
   
   // State
   const [settings, setSettings] = useState<any>({});
@@ -152,6 +168,79 @@ export default function Dashboard() {
       });
       setShowMeasurementModal(false);
       window.location.reload();
+  };
+
+  const handleOpenSleepEditModal = (d: any) => {
+      setSleepEditForm({
+          date: d.dateIso,
+          dateFormatted: d.date,
+          dayFull: d.dayFull,
+          hours: d.hours > 0 ? String(d.hours) : '',
+          isManual: Boolean(d.isManual)
+      });
+      setHoveredSleepDay(null);
+      setShowSleepModal(true);
+  };
+
+  const handleSaveSleep = async (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      if (!sleepEditForm.date) return;
+      const hoursNum = parseFloat(sleepEditForm.hours);
+      if (isNaN(hoursNum) || hoursNum < 0 || hoursNum > 24) {
+          alert('Please enter a valid number of sleep hours (0-24).');
+          return;
+      }
+
+      setSavingSleep(true);
+      try {
+          const res = await fetch('/api/sleep', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  date: sleepEditForm.date,
+                  sleepHours: hoursNum,
+                  isManual: true
+              })
+          });
+          const result = await res.json();
+          if (result.ok) {
+              const dashRes = await fetch('/api/dashboard');
+              const dashJson = await dashRes.json();
+              setData(dashJson);
+              setShowSleepModal(false);
+          } else {
+              alert(result.error || 'Failed to save sleep record.');
+          }
+      } catch (err: any) {
+          console.error(err);
+          alert('Error saving sleep record.');
+      } finally {
+          setSavingSleep(false);
+      }
+  };
+
+  const handleResetManualSleep = async () => {
+      if (!sleepEditForm.date) return;
+      setSavingSleep(true);
+      try {
+          const res = await fetch(`/api/sleep?date=${sleepEditForm.date}`, {
+              method: 'DELETE'
+          });
+          const result = await res.json();
+          if (result.ok) {
+              const dashRes = await fetch('/api/dashboard');
+              const dashJson = await dashRes.json();
+              setData(dashJson);
+              setShowSleepModal(false);
+          } else {
+              alert(result.error || 'Failed to reset manual sleep record.');
+          }
+      } catch (err: any) {
+          console.error(err);
+          alert('Error resetting sleep record.');
+      } finally {
+          setSavingSleep(false);
+      }
   };
 
   return (
@@ -556,28 +645,131 @@ export default function Dashboard() {
             {/* Bar Chart Area */}
             <div className="mt-auto pt-1 lg:pt-2 relative">
                 {/* The Chart bounds */}
-                <div className="relative h-16 lg:h-24 px-1 lg:px-2 border-b-2 border-white/40 flex justify-between items-end space-x-1 lg:space-x-2">
+                <div className="relative h-18 lg:h-26 px-1 lg:px-2 border-b-2 border-white/40 flex justify-between items-end space-x-1 lg:space-x-2">
                     {/* 7D Average Line */}
-                    <div className="absolute left-0 w-full border-t-2 border-dashed border-white/50 z-20 flex items-center" style={{ bottom: `${Math.min((data.recovery.sevenDayAvg / 10) * 100, 100)}%` }}>
+                    <div className="absolute left-0 w-full border-t-2 border-dashed border-white/50 z-20 flex items-center pointer-events-none" style={{ bottom: `${Math.min((data.recovery.sevenDayAvg / 10) * 100, 100)}%` }}>
                         <span className="text-[10px] text-white/70 bg-[#7a9e64] px-1 -translate-y-1/2 ml-1">AVG</span>
                     </div>
 
-                    {data.recovery.sleepData.length > 0 ? data.recovery.sleepData.map((d: any, i: number) => (
-                        <div key={i} className="flex flex-col items-center flex-1 h-full justify-end z-10 relative">
-                            <div className="w-full bg-black transition-all rounded-t-sm flex items-end justify-center pb-1" style={{ height: `${Math.min((d.hours / 10) * 100, 100)}%` }}>
-                                <span className="text-white text-[10px] lg:text-[11px] font-normal opacity-90">{d.hours > 0 ? d.hours : ''}</span>
+                    {data.recovery.sleepData && data.recovery.sleepData.length > 0 ? data.recovery.sleepData.map((d: any, i: number) => {
+                        const isManual = Boolean(d.isManual);
+                        const hasSleep = typeof d.hours === 'number' && d.hours > 0;
+                        const isHovered = hoveredSleepDay === i;
+
+                        // Align popover so it never overflows off left or right edges
+                        const popoverAlign = i === 0 
+                            ? 'left-0 translate-x-0' 
+                            : i === 6 
+                                ? 'right-0 translate-x-0 left-auto' 
+                                : 'left-1/2 -translate-x-1/2';
+
+                        return (
+                            <div 
+                                key={i} 
+                                className="flex flex-col items-center flex-1 h-full justify-end z-10 relative cursor-pointer group"
+                                onClick={() => handleOpenSleepEditModal(d)}
+                                onMouseEnter={() => setHoveredSleepDay(i)}
+                                onMouseLeave={() => setHoveredSleepDay(null)}
+                            >
+                                {/* Pop-up Window on hover */}
+                                {isHovered && (
+                                    <div 
+                                        className={`absolute bottom-full mb-2.5 z-50 w-44 ${popoverAlign} bg-gray-950/95 border-2 ${isManual ? 'border-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.4)]' : 'border-green-400/90 shadow-2xl'} rounded-lg p-2.5 text-center text-white backdrop-blur-md pointer-events-auto transition-all`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        onMouseEnter={() => setHoveredSleepDay(i)}
+                                        onMouseLeave={() => setHoveredSleepDay(null)}
+                                    >
+                                        <div className="text-[10px] font-bold text-green-300 uppercase tracking-wider mb-1">
+                                            {d.dayFull} ({d.date})
+                                        </div>
+                                        <div className="mb-2">
+                                            {hasSleep ? (
+                                                <div>
+                                                    <div className="text-xl font-black text-white leading-tight">
+                                                        {d.hours} <span className="text-xs text-green-200 font-normal">HRS</span>
+                                                    </div>
+                                                    <div className="mt-1">
+                                                        {isManual ? (
+                                                            <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-sky-950/90 text-sky-300 font-bold border border-sky-500/50">
+                                                                ✎ Manual Log
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-black/70 text-gray-300 font-semibold border border-white/10">
+                                                                Apple Health Sync
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="py-0.5">
+                                                    <p className="text-xs font-bold text-red-300">No sleep logged</p>
+                                                    <p className="text-[9px] text-gray-400 mt-0.5 leading-tight">No data transmitted</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleOpenSleepEditModal(d);
+                                            }}
+                                            className="w-full py-1.5 px-2 text-[10px] font-bold bg-green-600 hover:bg-green-500 text-white rounded transition-colors shadow flex items-center justify-center space-x-1 cursor-pointer"
+                                        >
+                                            <span>✎</span>
+                                            <span>{hasSleep ? 'Edit Sleep' : 'Log Sleep'}</span>
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Bar Element */}
+                                {hasSleep ? (
+                                    <div 
+                                        className={`w-full transition-all rounded-t-sm flex items-end justify-center pb-1 relative group-hover:brightness-125 ${
+                                            isManual ? 'shadow-sm ring-1 ring-sky-400/40' : 'bg-black'
+                                        }`}
+                                        style={{ 
+                                            height: `${Math.min((d.hours / 10) * 100, 100)}%`,
+                                            ...(isManual ? {
+                                                background: 'repeating-linear-gradient(135deg, #090e17 0px, #090e17 5px, #1e293b 5px, #1e293b 10px)',
+                                                borderTop: '2px solid #38bdf8'
+                                            } : {})
+                                        }}
+                                    >
+                                        {isManual && (
+                                            <span className="absolute -top-1.5 -right-0.5 text-[8px] text-sky-300 font-black leading-none drop-shadow" title="Manually edited">✎</span>
+                                        )}
+                                        <span className={`text-[10px] lg:text-[11px] font-bold opacity-90 drop-shadow ${isManual ? 'text-sky-100' : 'text-white'}`}>
+                                            {d.hours}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    /* Empty day bar placeholder (subtle dash) */
+                                    <div className="w-full h-1.5 bg-black/25 group-hover:bg-white/40 transition-colors rounded-sm mb-0.5" />
+                                )}
                             </div>
-                        </div>
-                    )) : (
+                        );
+                    }) : (
                         <div className="w-full text-center text-xs lg:text-sm opacity-50 pb-4">No sleep data yet. Send data to Apple Health Webhook.</div>
                     )}
                 </div>
 
                 {/* Days below the line */}
                 <div className="flex justify-between items-end space-x-1 lg:space-x-2 px-1 lg:px-2 mt-1">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, idx) => (
-                        <div key={idx} className="flex flex-col items-center flex-1">
-                            <span className="text-[10px] lg:text-xs font-bold opacity-80">{day}</span>
+                    {(data.recovery.sleepData || []).map((d: any, idx: number) => (
+                        <div 
+                            key={idx} 
+                            className="flex flex-col items-center flex-1 cursor-pointer group py-0.5"
+                            onClick={() => handleOpenSleepEditModal(d)}
+                            onMouseEnter={() => setHoveredSleepDay(idx)}
+                            onMouseLeave={() => setHoveredSleepDay(null)}
+                        >
+                            <span className={`text-[10px] lg:text-xs font-bold transition-colors ${
+                                d.isManual ? 'text-sky-200 font-black' : 'opacity-80 group-hover:opacity-100 group-hover:text-white'
+                            }`}>
+                                {d.day}
+                            </span>
+                            {d.isManual && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-0.5 shadow-[0_0_4px_#38bdf8]" title="Manual log" />
+                            )}
                         </div>
                     ))}
                 </div>
@@ -980,6 +1172,126 @@ export default function Dashboard() {
                           Save Measurements
                       </button>
                   </div>
+              </div>
+          </div>
+      )}
+
+      {/* Edit Sleep Record Modal */}
+      {showSleepModal && (
+          <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+              <div className="bg-gray-950 text-white rounded-xl shadow-[0_0_40px_rgba(74,222,128,0.3)] border-2 border-green-500/80 p-6 lg:p-7 max-w-md w-full animate-in fade-in zoom-in-95">
+                  <div className="flex justify-between items-start mb-4 border-b border-gray-800 pb-3">
+                      <div>
+                          <h2 className="text-2xl font-bold text-green-300 flex items-center space-x-2">
+                              <span>✎</span>
+                              <span>Edit Sleep Record</span>
+                          </h2>
+                          <p className="text-xs text-gray-400 mt-1">Adjust or add missing sleep hours for this night</p>
+                      </div>
+                      <button 
+                          onClick={() => setShowSleepModal(false)} 
+                          className="text-gray-400 hover:text-white text-3xl leading-none transition-colors"
+                      >
+                          &times;
+                      </button>
+                  </div>
+
+                  <form onSubmit={handleSaveSleep} className="space-y-4">
+                      {/* Locked Date Field */}
+                      <div className="bg-gray-900/90 p-3 rounded-lg border border-gray-800">
+                          <div className="flex justify-between items-center mb-1">
+                              <label className="text-xs font-bold uppercase tracking-wider text-gray-400">Target Date</label>
+                              <span className="text-[10px] text-green-400 font-bold bg-green-950/80 px-2 py-0.5 rounded border border-green-800/50">
+                                  🔒 Locked to Day
+                              </span>
+                          </div>
+                          <div className="text-lg font-bold text-white">
+                              {sleepEditForm.dayFull}, {sleepEditForm.date}
+                          </div>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                              {sleepEditForm.hours && parseFloat(sleepEditForm.hours) > 0 
+                                  ? `Currently: ${sleepEditForm.hours} hrs (${sleepEditForm.isManual ? 'Manual log' : 'Apple Health'})` 
+                                  : 'Currently: No sleep logged'}
+                          </p>
+                      </div>
+
+                      {/* Sleep Hours Input */}
+                      <div>
+                          <label className="block text-sm font-bold text-green-200 mb-1.5">
+                              Sleep Hours (0 - 24 hrs)
+                          </label>
+                          <div className="relative">
+                              <input 
+                                  type="number" 
+                                  step="0.1" 
+                                  min="0" 
+                                  max="24"
+                                  autoFocus
+                                  value={sleepEditForm.hours} 
+                                  onChange={e => setSleepEditForm({ ...sleepEditForm, hours: e.target.value })} 
+                                  className="w-full bg-black/60 border-2 border-green-600/70 focus:border-green-400 rounded-lg p-3 text-2xl font-black text-white outline-none transition-colors pr-16" 
+                                  placeholder="e.g. 7.5" 
+                              />
+                              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-sm">
+                                  HRS
+                              </span>
+                          </div>
+
+                          {/* Quick Helper Buttons */}
+                          <div className="flex flex-wrap gap-1.5 mt-2.5">
+                              {['6.0', '6.5', '7.0', '7.5', '8.0', '8.5', '9.0'].map(val => (
+                                  <button
+                                      type="button"
+                                      key={val}
+                                      onClick={() => setSleepEditForm({ ...sleepEditForm, hours: val })}
+                                      className={`text-xs px-2.5 py-1 rounded font-bold transition-all ${
+                                          sleepEditForm.hours === val 
+                                              ? 'bg-green-500 text-black shadow-md' 
+                                              : 'bg-gray-800 hover:bg-gray-700 text-gray-300'
+                                      }`}
+                                  >
+                                      {val}h
+                                  </button>
+                              ))}
+                          </div>
+                      </div>
+
+                      <div className="bg-sky-950/40 border border-sky-800/50 rounded-lg p-3 text-[11px] text-sky-200/90 leading-relaxed">
+                          ⓘ <strong>Manual Log Guarantee:</strong> This entry will be saved with a manual override flag and diagonal shaded styling. Future background Apple Health syncs will never overwrite it.
+                      </div>
+
+                      <div className="flex space-x-3 pt-2">
+                          <button 
+                              type="button"
+                              onClick={() => setShowSleepModal(false)}
+                              disabled={savingSleep}
+                              className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-lg transition-colors text-sm"
+                          >
+                              Cancel
+                          </button>
+                          <button 
+                              type="submit"
+                              disabled={savingSleep}
+                              className="flex-1 bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-lg transition-colors shadow-lg shadow-green-600/30 text-sm flex items-center justify-center space-x-1"
+                          >
+                              <span>{savingSleep ? 'Saving...' : 'Save Sleep Record'}</span>
+                          </button>
+                      </div>
+
+                      {/* Optional Reset Button if already manually edited */}
+                      {sleepEditForm.isManual && (
+                          <div className="pt-2 border-t border-gray-800/80 text-center">
+                              <button
+                                  type="button"
+                                  onClick={handleResetManualSleep}
+                                  disabled={savingSleep}
+                                  className="text-xs text-red-400 hover:text-red-300 underline font-medium cursor-pointer"
+                              >
+                                  Reset to Apple Health automatic sync
+                              </button>
+                          </div>
+                      )}
+                  </form>
               </div>
           </div>
       )}

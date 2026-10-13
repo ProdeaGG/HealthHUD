@@ -179,9 +179,26 @@ export async function GET() {
     const sleepMap = new Map(thisWeekMetrics.map(m => {
         let d = m.date.getUTCDay();
         d = d === 0 ? 6 : d - 1; // Convert to Mon=0, Sun=6
-        return [d, m.sleepHours || 0];
+        return [d, {
+            hours: m.sleepHours || 0,
+            isManual: Boolean((m as any).sleepManual)
+        }];
     }));
-    const sleepDataArray = [0, 1, 2, 3, 4, 5, 6].map(i => ({ day: dayNames[i], hours: sleepMap.get(i) || 0 }));
+    const sleepDataArray = [0, 1, 2, 3, 4, 5, 6].map(i => {
+        const d = new Date(startOfWeek);
+        d.setUTCDate(startOfWeek.getUTCDate() + i);
+        const dateIso = d.toISOString().split('T')[0];
+        const dateFormatted = `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
+        const entry = sleepMap.get(i);
+        return {
+            day: dayNames[i],
+            dayFull: fullDayNames[i],
+            date: dateFormatted,
+            dateIso,
+            hours: entry?.hours || 0,
+            isManual: entry?.isManual || false
+        };
+    });
 
     // Array for Strength workouts logic (Mon-Sun)
     const strengthMap = new Map(thisWeekMetrics.map(m => {
@@ -372,7 +389,14 @@ export async function GET() {
             cardioWorkouts: cardioWorkoutsList
         },
         recovery: {
-            sleepHours: thisWeekMetrics[thisWeekMetrics.length - 1]?.sleepHours || 0, // Last recorded night
+            sleepHours: (() => {
+                const recorded = [...thisWeekMetrics].reverse().find(m => typeof m.sleepHours === 'number' && m.sleepHours > 0);
+                return recorded ? (recorded.sleepHours || 0) : (thisWeekMetrics[thisWeekMetrics.length - 1]?.sleepHours || 0);
+            })(),
+            isManual: (() => {
+                const recorded = [...thisWeekMetrics].reverse().find(m => typeof m.sleepHours === 'number' && m.sleepHours > 0);
+                return Boolean((recorded as any)?.sleepManual);
+            })(),
             sevenDayAvg: sleepAvg.toFixed(1),
             sleepData: sleepDataArray
         },

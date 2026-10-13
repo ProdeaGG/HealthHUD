@@ -1,18 +1,26 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.10.1"
+VERSION="v1.11.0"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • FULL-WIDTH VITALS SPARKLINE & MILESTONE TRACK:"
-echo "    - Expanded the SVG weight sparkline across the full card width,"
-echo "      eliminating middle-scrunching and rendering a wide telemetry curve."
-echo "    - Expanded the 7 daily milestone vessels into an edge-to-edge 7-column track."
-echo "    - Mon-Sun points on the sparkline now align with the 7 step vessels below."
+echo "  • RECOVERY HUD MANUAL SLEEP LOGGING & EDITING:"
+echo "    - Hover any day bar or date in the Recovery HUD to view a pop-up"
+echo "      displaying logged hours or 'No sleep logged / No data transmitted'."
+echo "    - Click the 'Edit Sleep' button in the pop-up (or click the bar directly)"
+echo "      to adjust or add missing sleep hours."
+echo "    - Edit modal automatically locks to the selected date so you can log"
+echo "      nights when your watch died or wasn't worn on the charger."
+echo "  • DIAGONAL SHADED TEXTURE FOR MANUAL BARS:"
+echo "    - Manually logged sleep bars differentiate with subtle diagonal shaded"
+echo "      stripes, cyan top rim, and a discrete indicator icon."
+echo "  • SYNC OVERWRITE PROTECTION:"
+echo "    - Manual sleep entries are flagged in the database and protected from"
+echo "      being overwritten by background Apple Health syncs."
 echo "====================================================="
 echo ""
 

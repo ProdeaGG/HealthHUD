@@ -292,7 +292,8 @@ export async function POST(request: Request) {
       if (day.hrCount > 0) {
         data.restingHeartRate = Math.round(day.hrSum / day.hrCount);
       }
-      if (day.sleepHours !== undefined) {
+      // Only overwrite sleep hours if not manually entered/locked by the user
+      if (day.sleepHours !== undefined && !existing?.sleepManual) {
         data.sleepHours = parseFloat(day.sleepHours.toFixed(1));
       }
 
