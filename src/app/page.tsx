@@ -633,10 +633,10 @@ export default function Dashboard() {
             </div>
         </div>
 
-        {/* Bottom Left: Recovery HUD (Green) */}
+        {/* Bottom Left: Recharge & Sleep (Green) */}
         <div className="border-4 lg:border-0 lg:border-t-4 border-[#333] flex flex-col justify-between p-3 lg:p-5 pb-2 lg:pb-3" style={{ backgroundColor: '#7a9e64', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
             <div className="text-center pt-0 lg:pt-1">
-                <h2 className="text-xl lg:text-2xl mb-1 font-semibold">Recovery HUD (sleep data)</h2>
+                <h2 className="text-xl lg:text-2xl mb-1 font-semibold">Recharge & Sleep</h2>
                 <h3 className="uppercase text-green-200 tracking-wide text-[10px] lg:text-xs mb-0 lg:mb-1">Last Night</h3>
                 <h1 className="text-5xl lg:text-6xl font-bold mb-1 leading-none">{data.recovery.sleepHours} HRS</h1>
                 <p className="text-sm lg:text-base mb-0">7D AVG: {data.recovery.sevenDayAvg} HRS</p>

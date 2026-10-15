@@ -1,19 +1,19 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.11.1"
+VERSION="v1.11.2"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • RECOVERY HUD AVERAGE LINE & BAR SCALING FIX:"
-echo "    - Fixed flexbox height resolution and container bounds in the Sleep chart."
-echo "    - Synchronized bar heights and 7D average line to a unified scale,"
-echo "      ensuring bars above average (e.g. 6.9 hrs) physically rise higher than"
-echo "      the average line (e.g. 6.4 hrs)."
-echo "    - Added live 'AVG [value]' label directly onto the dashed line for clear reading."
+echo "  • QUADRANT REBRAND: 'Recharge & Sleep':"
+echo "    - Renamed bottom-left quadrant from 'Recovery HUD (sleep data)'"
+echo "      to 'Recharge & Sleep' for a clean, cohesive dashboard title."
+echo "  • SLEEP CHART ACCURACY & 7D AVERAGE CALIBRATION:"
+echo "    - Fixed flexbox height resolution so bar heights and 7D average line"
+echo "      align to an accurate unified scale."
 echo "====================================================="
 echo ""
 

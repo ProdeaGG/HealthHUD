@@ -43,7 +43,7 @@ Stop checking four different phone apps and wrestling with brittle Google Sheets
 * **Cardio-Specific Heart Rate:** Intelligently isolates heart rate during cardio sessions (running, walks, elliptical, cycling) to measure cardiovascular conditioning, separate from resting heart rate.
 * **Automatic Monday Reset:** At midnight Monday, weekly consistency targets restart cleanly for the new week.
 
-### 💤 Recovery HUD (Bottom-Left)
+### 🔋 Recharge & Sleep (Bottom-Left)
 * **Sleep Architecture:** Visualizes sleep duration for each night of the week against a dynamic 7-day average line.
 * **Auto-Aggregated from Apple Health:** Deep, Core, REM, and Asleep stages automatically parsed and totaled.
 
