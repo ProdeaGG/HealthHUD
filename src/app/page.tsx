@@ -643,137 +643,152 @@ export default function Dashboard() {
             </div>
             
             {/* Bar Chart Area */}
-            <div className="mt-auto pt-1 lg:pt-2 relative">
-                {/* The Chart bounds */}
-                <div className="relative h-18 lg:h-26 px-1 lg:px-2 border-b-2 border-white/40 flex justify-between items-end space-x-1 lg:space-x-2">
-                    {/* 7D Average Line */}
-                    <div className="absolute left-0 w-full border-t-2 border-dashed border-white/50 z-20 flex items-center pointer-events-none" style={{ bottom: `${Math.min((data.recovery.sevenDayAvg / 10) * 100, 100)}%` }}>
-                        <span className="text-[10px] text-white/70 bg-[#7a9e64] px-1 -translate-y-1/2 ml-1">AVG</span>
-                    </div>
+            {(() => {
+                const sleepList = data.recovery.sleepData || [];
+                const avgNum = parseFloat(data.recovery.sevenDayAvg) || 0;
+                const maxScale = Math.max(10, ...sleepList.map((d: any) => d.hours || 0), avgNum);
 
-                    {data.recovery.sleepData && data.recovery.sleepData.length > 0 ? data.recovery.sleepData.map((d: any, i: number) => {
-                        const isManual = Boolean(d.isManual);
-                        const hasSleep = typeof d.hours === 'number' && d.hours > 0;
-                        const isHovered = hoveredSleepDay === i;
+                return (
+                    <div className="mt-auto pt-1 lg:pt-2 relative">
+                        {/* The Chart bounds */}
+                        <div className="relative h-28 lg:h-36 px-1 lg:px-2 border-b-2 border-white/40 flex justify-between items-stretch space-x-1 lg:space-x-2">
+                            {/* 7D Average Line */}
+                            {avgNum > 0 && (
+                                <div 
+                                    className="absolute left-0 w-full border-t-2 border-dashed border-white/60 z-20 flex items-center pointer-events-none transition-all duration-300" 
+                                    style={{ bottom: `${(avgNum / maxScale) * 100}%` }}
+                                >
+                                    <span className="text-[9px] lg:text-[10px] text-white font-bold bg-[#7a9e64] px-1 py-0.2 rounded -translate-y-1/2 ml-1 shadow-sm">
+                                        AVG {avgNum.toFixed(1)}
+                                    </span>
+                                </div>
+                            )}
 
-                        // Align popover so it never overflows off left or right edges
-                        const popoverAlign = i === 0 
-                            ? 'left-0 translate-x-0' 
-                            : i === 6 
-                                ? 'right-0 translate-x-0 left-auto' 
-                                : 'left-1/2 -translate-x-1/2';
+                            {sleepList.length > 0 ? sleepList.map((d: any, i: number) => {
+                                const isManual = Boolean(d.isManual);
+                                const hasSleep = typeof d.hours === 'number' && d.hours > 0;
+                                const isHovered = hoveredSleepDay === i;
 
-                        return (
-                            <div 
-                                key={i} 
-                                className="flex flex-col items-center flex-1 h-full justify-end z-10 relative cursor-pointer group"
-                                onClick={() => handleOpenSleepEditModal(d)}
-                                onMouseEnter={() => setHoveredSleepDay(i)}
-                                onMouseLeave={() => setHoveredSleepDay(null)}
-                            >
-                                {/* Pop-up Window on hover */}
-                                {isHovered && (
+                                // Align popover so it never overflows off left or right edges
+                                const popoverAlign = i === 0 
+                                    ? 'left-0 translate-x-0' 
+                                    : i === 6 
+                                        ? 'right-0 translate-x-0 left-auto' 
+                                        : 'left-1/2 -translate-x-1/2';
+
+                                return (
                                     <div 
-                                        className={`absolute bottom-full mb-2.5 z-50 w-44 ${popoverAlign} bg-gray-950/95 border-2 ${isManual ? 'border-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.4)]' : 'border-green-400/90 shadow-2xl'} rounded-lg p-2.5 text-center text-white backdrop-blur-md pointer-events-auto transition-all`}
-                                        onClick={(e) => e.stopPropagation()}
+                                        key={i} 
+                                        className="flex flex-col items-center flex-1 h-full justify-end z-10 relative cursor-pointer group"
+                                        onClick={() => handleOpenSleepEditModal(d)}
                                         onMouseEnter={() => setHoveredSleepDay(i)}
                                         onMouseLeave={() => setHoveredSleepDay(null)}
                                     >
-                                        <div className="text-[10px] font-bold text-green-300 uppercase tracking-wider mb-1">
-                                            {d.dayFull} ({d.date})
-                                        </div>
-                                        <div className="mb-2">
-                                            {hasSleep ? (
-                                                <div>
-                                                    <div className="text-xl font-black text-white leading-tight">
-                                                        {d.hours} <span className="text-xs text-green-200 font-normal">HRS</span>
-                                                    </div>
-                                                    <div className="mt-1">
-                                                        {isManual ? (
-                                                            <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-sky-950/90 text-sky-300 font-bold border border-sky-500/50">
-                                                                ✎ Manual Log
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-black/70 text-gray-300 font-semibold border border-white/10">
-                                                                Apple Health Sync
-                                                            </span>
-                                                        )}
-                                                    </div>
+                                        {/* Pop-up Window on hover */}
+                                        {isHovered && (
+                                            <div 
+                                                className={`absolute bottom-full mb-2.5 z-50 w-44 ${popoverAlign} bg-gray-950/95 border-2 ${isManual ? 'border-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.4)]' : 'border-green-400/90 shadow-2xl'} rounded-lg p-2.5 text-center text-white backdrop-blur-md pointer-events-auto transition-all`}
+                                                onClick={(e) => e.stopPropagation()}
+                                                onMouseEnter={() => setHoveredSleepDay(i)}
+                                                onMouseLeave={() => setHoveredSleepDay(null)}
+                                            >
+                                                <div className="text-[10px] font-bold text-green-300 uppercase tracking-wider mb-1">
+                                                    {d.dayFull} ({d.date})
                                                 </div>
-                                            ) : (
-                                                <div className="py-0.5">
-                                                    <p className="text-xs font-bold text-red-300">No sleep logged</p>
-                                                    <p className="text-[9px] text-gray-400 mt-0.5 leading-tight">No data transmitted</p>
+                                                <div className="mb-2">
+                                                    {hasSleep ? (
+                                                        <div>
+                                                            <div className="text-xl font-black text-white leading-tight">
+                                                                {d.hours} <span className="text-xs text-green-200 font-normal">HRS</span>
+                                                            </div>
+                                                            <div className="mt-1">
+                                                                {isManual ? (
+                                                                    <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-sky-950/90 text-sky-300 font-bold border border-sky-500/50">
+                                                                        ✎ Manual Log
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="inline-block text-[9px] px-1.5 py-0.5 rounded bg-black/70 text-gray-300 font-semibold border border-white/10">
+                                                                        Apple Health Sync
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="py-0.5">
+                                                            <p className="text-xs font-bold text-red-300">No sleep logged</p>
+                                                            <p className="text-[9px] text-gray-400 mt-0.5 leading-tight">No data transmitted</p>
+                                                        </div>
+                                                    )}
                                                 </div>
-                                            )}
-                                        </div>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleOpenSleepEditModal(d);
-                                            }}
-                                            className="w-full py-1.5 px-2 text-[10px] font-bold bg-green-600 hover:bg-green-500 text-white rounded transition-colors shadow flex items-center justify-center space-x-1 cursor-pointer"
-                                        >
-                                            <span>✎</span>
-                                            <span>{hasSleep ? 'Edit Sleep' : 'Log Sleep'}</span>
-                                        </button>
-                                    </div>
-                                )}
-
-                                {/* Bar Element */}
-                                {hasSleep ? (
-                                    <div 
-                                        className={`w-full transition-all rounded-t-sm flex items-end justify-center pb-1 relative group-hover:brightness-125 ${
-                                            isManual ? 'shadow-sm ring-1 ring-sky-400/40' : 'bg-black'
-                                        }`}
-                                        style={{ 
-                                            height: `${Math.min((d.hours / 10) * 100, 100)}%`,
-                                            ...(isManual ? {
-                                                background: 'repeating-linear-gradient(135deg, #090e17 0px, #090e17 5px, #1e293b 5px, #1e293b 10px)',
-                                                borderTop: '2px solid #38bdf8'
-                                            } : {})
-                                        }}
-                                    >
-                                        {isManual && (
-                                            <span className="absolute -top-1.5 -right-0.5 text-[8px] text-sky-300 font-black leading-none drop-shadow" title="Manually edited">✎</span>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleOpenSleepEditModal(d);
+                                                    }}
+                                                    className="w-full py-1.5 px-2 text-[10px] font-bold bg-green-600 hover:bg-green-500 text-white rounded transition-colors shadow flex items-center justify-center space-x-1 cursor-pointer"
+                                                >
+                                                    <span>✎</span>
+                                                    <span>{hasSleep ? 'Edit Sleep' : 'Log Sleep'}</span>
+                                                </button>
+                                            </div>
                                         )}
-                                        <span className={`text-[10px] lg:text-[11px] font-bold opacity-90 drop-shadow ${isManual ? 'text-sky-100' : 'text-white'}`}>
-                                            {d.hours}
-                                        </span>
-                                    </div>
-                                ) : (
-                                    /* Empty day bar placeholder (subtle dash) */
-                                    <div className="w-full h-1.5 bg-black/25 group-hover:bg-white/40 transition-colors rounded-sm mb-0.5" />
-                                )}
-                            </div>
-                        );
-                    }) : (
-                        <div className="w-full text-center text-xs lg:text-sm opacity-50 pb-4">No sleep data yet. Send data to Apple Health Webhook.</div>
-                    )}
-                </div>
 
-                {/* Days below the line */}
-                <div className="flex justify-between items-end space-x-1 lg:space-x-2 px-1 lg:px-2 mt-1">
-                    {(data.recovery.sleepData || []).map((d: any, idx: number) => (
-                        <div 
-                            key={idx} 
-                            className="flex flex-col items-center flex-1 cursor-pointer group py-0.5"
-                            onClick={() => handleOpenSleepEditModal(d)}
-                            onMouseEnter={() => setHoveredSleepDay(idx)}
-                            onMouseLeave={() => setHoveredSleepDay(null)}
-                        >
-                            <span className={`text-[10px] lg:text-xs font-bold transition-colors ${
-                                d.isManual ? 'text-sky-200 font-black' : 'opacity-80 group-hover:opacity-100 group-hover:text-white'
-                            }`}>
-                                {d.day}
-                            </span>
-                            {d.isManual && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-0.5 shadow-[0_0_4px_#38bdf8]" title="Manual log" />
+                                        {/* Bar Element */}
+                                        {hasSleep ? (
+                                            <div 
+                                                className={`w-full transition-all duration-300 rounded-t-sm flex items-end justify-center pb-1 relative group-hover:brightness-125 ${
+                                                    isManual ? 'shadow-sm ring-1 ring-sky-400/40' : 'bg-black'
+                                                }`}
+                                                style={{ 
+                                                    height: `${(d.hours / maxScale) * 100}%`,
+                                                    ...(isManual ? {
+                                                        background: 'repeating-linear-gradient(135deg, #090e17 0px, #090e17 5px, #1e293b 5px, #1e293b 10px)',
+                                                        borderTop: '2px solid #38bdf8'
+                                                    } : {})
+                                                }}
+                                            >
+                                                {isManual && (
+                                                    <span className="absolute -top-1.5 -right-0.5 text-[8px] text-sky-300 font-black leading-none drop-shadow" title="Manually edited">✎</span>
+                                                )}
+                                                <span className={`text-[10px] lg:text-[11px] font-bold opacity-90 drop-shadow ${isManual ? 'text-sky-100' : 'text-white'}`}>
+                                                    {d.hours}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            /* Empty day bar placeholder (subtle dash) */
+                                            <div className="w-full h-1.5 bg-black/25 group-hover:bg-white/40 transition-colors rounded-sm mb-0.5" />
+                                        )}
+                                    </div>
+                                );
+                            }) : (
+                                <div className="w-full text-center text-xs lg:text-sm opacity-50 pb-4">No sleep data yet. Send data to Apple Health Webhook.</div>
                             )}
                         </div>
-                    ))}
-                </div>
-            </div>
+
+                        {/* Days below the line */}
+                        <div className="flex justify-between items-end space-x-1 lg:space-x-2 px-1 lg:px-2 mt-1">
+                            {sleepList.map((d: any, idx: number) => (
+                                <div 
+                                    key={idx} 
+                                    className="flex flex-col items-center flex-1 cursor-pointer group py-0.5"
+                                    onClick={() => handleOpenSleepEditModal(d)}
+                                    onMouseEnter={() => setHoveredSleepDay(idx)}
+                                    onMouseLeave={() => setHoveredSleepDay(null)}
+                                >
+                                    <span className={`text-[10px] lg:text-xs font-bold transition-colors ${
+                                        d.isManual ? 'text-sky-200 font-black' : 'opacity-80 group-hover:opacity-100 group-hover:text-white'
+                                    }`}>
+                                        {d.day}
+                                    </span>
+                                    {d.isManual && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-sky-400 mt-0.5 shadow-[0_0_4px_#38bdf8]" title="Manual log" />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
 
         {/* Bottom Right: Manual Measurements (Blue) */}

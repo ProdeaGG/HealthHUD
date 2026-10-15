@@ -1,26 +1,19 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.11.0"
+VERSION="v1.11.1"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • RECOVERY HUD MANUAL SLEEP LOGGING & EDITING:"
-echo "    - Hover any day bar or date in the Recovery HUD to view a pop-up"
-echo "      displaying logged hours or 'No sleep logged / No data transmitted'."
-echo "    - Click the 'Edit Sleep' button in the pop-up (or click the bar directly)"
-echo "      to adjust or add missing sleep hours."
-echo "    - Edit modal automatically locks to the selected date so you can log"
-echo "      nights when your watch died or wasn't worn on the charger."
-echo "  • DIAGONAL SHADED TEXTURE FOR MANUAL BARS:"
-echo "    - Manually logged sleep bars differentiate with subtle diagonal shaded"
-echo "      stripes, cyan top rim, and a discrete indicator icon."
-echo "  • SYNC OVERWRITE PROTECTION:"
-echo "    - Manual sleep entries are flagged in the database and protected from"
-echo "      being overwritten by background Apple Health syncs."
+echo "  • RECOVERY HUD AVERAGE LINE & BAR SCALING FIX:"
+echo "    - Fixed flexbox height resolution and container bounds in the Sleep chart."
+echo "    - Synchronized bar heights and 7D average line to a unified scale,"
+echo "      ensuring bars above average (e.g. 6.9 hrs) physically rise higher than"
+echo "      the average line (e.g. 6.4 hrs)."
+echo "    - Added live 'AVG [value]' label directly onto the dashed line for clear reading."
 echo "====================================================="
 echo ""
 
