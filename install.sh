@@ -1,19 +1,22 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.11.2"
+VERSION="v1.11.3"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • QUADRANT REBRAND: 'Recharge & Sleep':"
-echo "    - Renamed bottom-left quadrant from 'Recovery HUD (sleep data)'"
-echo "      to 'Recharge & Sleep' for a clean, cohesive dashboard title."
-echo "  • SLEEP CHART ACCURACY & 7D AVERAGE CALIBRATION:"
-echo "    - Fixed flexbox height resolution so bar heights and 7D average line"
-echo "      align to an accurate unified scale."
+echo "  • VITALS VERTICAL BUDGET & CUTOFF FIX:"
+echo "    - Tightened Vitals padding, hero weight typography, sparkline height,"
+echo "      and bottom step stat margins to guarantee zero clipping by the"
+echo "      desktop center divider bar on all screen resolutions and Windows scale factors."
+echo "  • SLEEP CHART 7D AVERAGE BISECTION & BAR SYNCHRONIZATION:"
+echo "    - Shifted sleep columns and bar elements to absolute baseline positioning."
+echo "    - Bars and the 7D average dashed line now share the exact same height coordinate system:"
+echo "      nights with sleep above average cleanly rise above the average line,"
+echo "      and nights below average sit beneath the average line."
 echo "====================================================="
 echo ""
 

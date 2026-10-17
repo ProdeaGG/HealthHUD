@@ -266,7 +266,7 @@ export default function Dashboard() {
         </div>
 
         {/* Top Left: Vitals (Orange) */}
-        <div className="border-4 lg:border-0 border-[#333] flex flex-col justify-between p-3.5 lg:p-5 relative" style={{ backgroundColor: '#ef9c3f', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
+        <div className="border-4 lg:border-0 border-[#333] flex flex-col justify-between p-2.5 sm:p-3 lg:p-3.5 pb-1 lg:pb-2 relative" style={{ backgroundColor: '#ef9c3f', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
             {/* Quick Action: Manual Weight Entry (+) at top-right corner */}
             {settings?.allowManualWeight !== false && (
                 <button 
@@ -280,8 +280,8 @@ export default function Dashboard() {
 
             {/* Top Section: Weight Header & Interactive Sparkline */}
             <div className="text-center">
-                <h2 className="text-xl lg:text-2xl font-semibold mb-0.5">Vitals</h2>
-                <h1 className="text-5xl lg:text-6xl xl:text-7xl font-black uppercase leading-none tracking-tight">{data.vitals.weightLbs} lbs</h1>
+                <h2 className="text-lg lg:text-xl font-semibold mb-0">Vitals</h2>
+                <h1 className="text-4xl lg:text-5xl xl:text-6xl font-black uppercase leading-none tracking-tight">{data.vitals.weightLbs} lbs</h1>
                 
                 {/* Smooth Glowing Weight Sparkline */}
                 {(() => {
@@ -289,8 +289,8 @@ export default function Dashboard() {
                     const validWeights = history.filter((d: any) => typeof d.weight === 'number' && d.weight > 0);
                     
                     const svgW = 700;
-                    const svgH = 34;
-                    const padY = 5;
+                    const svgH = 30;
+                    const padY = 4;
                     const usableH = svgH - (padY * 2);
 
                     let minW = validWeights.length > 0 ? Math.min(...validWeights.map((d: any) => d.weight)) : 0;
@@ -335,8 +335,8 @@ export default function Dashboard() {
                     }
 
                     return (
-                        <div className="w-full px-1 lg:px-3 my-1">
-                            <svg viewBox={`0 0 ${svgW} ${svgH + 4}`} className="w-full h-10 lg:h-11 overflow-visible">
+                        <div className="w-full px-1 lg:px-2 my-0.5">
+                            <svg viewBox={`0 0 ${svgW} ${svgH + 2}`} className="w-full h-8 lg:h-9 overflow-visible">
                                 <defs>
                                     <linearGradient id="vitalsWeightGrad" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="0%" stopColor="#2dd4bf" stopOpacity="0.45" />
@@ -414,7 +414,7 @@ export default function Dashboard() {
             </div>
             
             {/* Middle Section: 7 Mon-Sun Step Goal Vessels (Liquid Bottom-to-Top Fill + Neon Glow) */}
-            <div className="w-full my-1 py-1.5 border-t border-orange-700/30 px-1 lg:px-3">
+            <div className="w-full my-0.5 py-1 border-t border-orange-700/30 px-1 lg:px-2">
                 <div className="grid grid-cols-7 w-full text-center">
                     {(data.vitals.stepsByDay || []).map((d: any, idx: number) => {
                         const isGoalMet = d.completed;
@@ -445,7 +445,7 @@ export default function Dashboard() {
                             >
                                 {/* Circle Vessel */}
                                 <div 
-                                    className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden transition-all flex items-center justify-center ${
+                                    className={`relative w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden transition-all flex items-center justify-center ${
                                         isGoalMet 
                                             ? 'border-2 border-green-400 shadow-[0_0_12px_#4ade80] ring-1 ring-green-300/90 bg-black/60 scale-105' 
                                             : pct > 0 
@@ -465,15 +465,15 @@ export default function Dashboard() {
 
                                     {/* Center Glyph: Crisp checkmark when completed */}
                                     {isGoalMet && (
-                                        <span className="relative z-10 text-[11px] text-black font-black select-none drop-shadow">✓</span>
+                                        <span className="relative z-10 text-[10px] text-black font-black select-none drop-shadow">✓</span>
                                     )}
                                 </div>
-                                <span className={`text-[10px] lg:text-[11px] font-bold mt-1 tracking-tight transition-colors select-none ${
+                                <span className={`text-[9px] lg:text-[10px] font-bold mt-0.5 tracking-tight transition-colors select-none ${
                                     isGoalMet 
                                         ? 'text-green-300 font-extrabold drop-shadow-[0_0_6px_rgba(74,222,128,0.7)]' 
                                         : pct > 0 
-                                            ? 'text-white' 
-                                            : 'text-orange-200/60'
+                                                ? 'text-white' 
+                                                : 'text-orange-200/60'
                                 }`}>
                                     {d.day}
                                 </span>
@@ -484,23 +484,23 @@ export default function Dashboard() {
             </div>
 
             {/* Bottom Section: 3 Balanced Centered Step Tiles */}
-            <div className="grid grid-cols-3 text-center items-start pt-2 border-t border-orange-700/30 px-1">
+            <div className="grid grid-cols-3 text-center items-start pt-1.5 pb-1 border-t border-orange-700/30 px-1">
                 {/* Tile 1: Today's Steps */}
                 <div className="flex flex-col items-center">
-                    <p className="uppercase text-[9px] lg:text-[10px] tracking-wider text-orange-200 font-semibold mb-0.5">Today's Steps</p>
-                    <p className="text-xl lg:text-2xl font-bold leading-tight">
+                    <p className="uppercase text-[8px] lg:text-[9px] tracking-wider text-orange-200 font-semibold mb-0">Today's Steps</p>
+                    <p className="text-lg lg:text-xl font-bold leading-tight">
                         {(data.vitals.steps.todaySteps ?? 0).toLocaleString()}
                     </p>
                 </div>
 
                 {/* Tile 2: Average Daily Steps (Center Tile) */}
                 <div className="flex flex-col items-center border-x border-orange-700/40 px-1">
-                    <p className="uppercase text-[9px] lg:text-[10px] tracking-wider text-orange-200 font-semibold mb-0.5">Avg Daily Steps</p>
-                    <p className="text-xl lg:text-2xl font-bold leading-tight">
+                    <p className="uppercase text-[8px] lg:text-[9px] tracking-wider text-orange-200 font-semibold mb-0">Avg Daily Steps</p>
+                    <p className="text-lg lg:text-xl font-bold leading-tight">
                         {(data.vitals.steps.thisWeekDailyAvg ?? 0).toLocaleString()}
-                        <span className="text-[10px] font-normal opacity-80 ml-0.5">/d</span>
+                        <span className="text-[9px] font-normal opacity-80 ml-0.5">/d</span>
                     </p>
-                    <p className={`text-[9px] lg:text-[10px] font-bold mt-0.5 ${
+                    <p className={`text-[8px] lg:text-[9px] font-bold mt-0.5 leading-tight ${
                         (data.vitals.steps.dailyAvgDifference ?? 0) >= 0 ? 'text-green-300' : 'text-red-200'
                     }`}>
                         {(data.vitals.steps.dailyAvgDifference ?? 0) > 0 ? '+' : ''}
@@ -510,11 +510,11 @@ export default function Dashboard() {
 
                 {/* Tile 3: This Week's Steps (Total) */}
                 <div className="flex flex-col items-center">
-                    <p className="uppercase text-[9px] lg:text-[10px] tracking-wider text-orange-200 font-semibold mb-0.5">This Week's Steps</p>
-                    <p className="text-xl lg:text-2xl font-bold leading-tight">
+                    <p className="uppercase text-[8px] lg:text-[9px] tracking-wider text-orange-200 font-semibold mb-0">This Week's Steps</p>
+                    <p className="text-lg lg:text-xl font-bold leading-tight">
                         {(data.vitals.steps.thisWeekTotalSteps ?? 0).toLocaleString()}
                     </p>
-                    <p className={`text-[9px] lg:text-[10px] font-bold mt-0.5 ${
+                    <p className={`text-[8px] lg:text-[9px] font-bold mt-0.5 leading-tight ${
                         (data.vitals.steps.difference ?? 0) >= 0 ? 'text-green-300' : 'text-red-200'
                     }`}>
                         {(data.vitals.steps.difference ?? 0) > 0 ? '+' : ''}
@@ -634,12 +634,12 @@ export default function Dashboard() {
         </div>
 
         {/* Bottom Left: Recharge & Sleep (Green) */}
-        <div className="border-4 lg:border-0 lg:border-t-4 border-[#333] flex flex-col justify-between p-3 lg:p-5 pb-2 lg:pb-3" style={{ backgroundColor: '#7a9e64', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
-            <div className="text-center pt-0 lg:pt-1">
-                <h2 className="text-xl lg:text-2xl mb-1 font-semibold">Recharge & Sleep</h2>
-                <h3 className="uppercase text-green-200 tracking-wide text-[10px] lg:text-xs mb-0 lg:mb-1">Last Night</h3>
-                <h1 className="text-5xl lg:text-6xl font-bold mb-1 leading-none">{data.recovery.sleepHours} HRS</h1>
-                <p className="text-sm lg:text-base mb-0">7D AVG: {data.recovery.sevenDayAvg} HRS</p>
+        <div className="border-4 lg:border-0 lg:border-t-4 border-[#333] flex flex-col justify-between p-2.5 sm:p-3 lg:p-4 pb-2" style={{ backgroundColor: '#7a9e64', textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}>
+            <div className="text-center pt-0">
+                <h2 className="text-lg lg:text-xl mb-0.5 font-semibold">Recharge & Sleep</h2>
+                <h3 className="uppercase text-green-200 tracking-wide text-[10px] lg:text-xs mb-0">Last Night</h3>
+                <h1 className="text-4xl lg:text-5xl font-bold my-0.5 leading-none">{data.recovery.sleepHours} HRS</h1>
+                <p className="text-xs lg:text-sm font-medium mb-0">7D AVG: {data.recovery.sevenDayAvg} HRS</p>
             </div>
             
             {/* Bar Chart Area */}
@@ -649,17 +649,17 @@ export default function Dashboard() {
                 const maxScale = Math.max(10, ...sleepList.map((d: any) => d.hours || 0), avgNum);
 
                 return (
-                    <div className="mt-auto pt-1 lg:pt-2 relative">
+                    <div className="mt-auto pt-1 relative">
                         {/* The Chart bounds */}
-                        <div className="relative h-28 lg:h-36 px-1 lg:px-2 border-b-2 border-white/40 flex justify-between items-stretch space-x-1 lg:space-x-2">
-                            {/* 7D Average Line */}
+                        <div className="relative h-20 lg:h-24 px-1 lg:px-2 border-b-2 border-white/40 flex justify-between items-stretch space-x-1 lg:space-x-2">
+                            {/* 7D Average Line spanning across all columns */}
                             {avgNum > 0 && (
                                 <div 
-                                    className="absolute left-0 w-full border-t-2 border-dashed border-white/60 z-20 flex items-center pointer-events-none transition-all duration-300" 
+                                    className="absolute left-0 right-0 border-t-2 border-dashed border-white/80 z-20 flex items-center pointer-events-none transition-all duration-300" 
                                     style={{ bottom: `${(avgNum / maxScale) * 100}%` }}
                                 >
-                                    <span className="text-[9px] lg:text-[10px] text-white font-bold bg-[#7a9e64] px-1 py-0.2 rounded -translate-y-1/2 ml-1 shadow-sm">
-                                        AVG {avgNum.toFixed(1)}
+                                    <span className="text-[9px] font-black text-white bg-black/85 border border-white/50 px-1.5 py-0.5 rounded -translate-y-1/2 ml-1 shadow-md whitespace-nowrap">
+                                        AVG: {avgNum.toFixed(1)} HRS
                                     </span>
                                 </div>
                             )}
@@ -679,7 +679,7 @@ export default function Dashboard() {
                                 return (
                                     <div 
                                         key={i} 
-                                        className="flex flex-col items-center flex-1 h-full justify-end z-10 relative cursor-pointer group"
+                                        className="relative flex-1 h-full cursor-pointer group"
                                         onClick={() => handleOpenSleepEditModal(d)}
                                         onMouseEnter={() => setHoveredSleepDay(i)}
                                         onMouseLeave={() => setHoveredSleepDay(null)}
@@ -733,10 +733,10 @@ export default function Dashboard() {
                                             </div>
                                         )}
 
-                                        {/* Bar Element */}
+                                        {/* Bar Element with accurate percentage height relative to chart height */}
                                         {hasSleep ? (
                                             <div 
-                                                className={`w-full transition-all duration-300 rounded-t-sm flex items-end justify-center pb-1 relative group-hover:brightness-125 ${
+                                                className={`absolute bottom-0 left-0 right-0 transition-all duration-300 rounded-t-sm flex items-end justify-center pb-1 group-hover:brightness-125 ${
                                                     isManual ? 'shadow-sm ring-1 ring-sky-400/40' : 'bg-black'
                                                 }`}
                                                 style={{ 
@@ -755,8 +755,8 @@ export default function Dashboard() {
                                                 </span>
                                             </div>
                                         ) : (
-                                            /* Empty day bar placeholder (subtle dash) */
-                                            <div className="w-full h-1.5 bg-black/25 group-hover:bg-white/40 transition-colors rounded-sm mb-0.5" />
+                                            /* Empty day bar placeholder (subtle dash at bottom baseline) */
+                                            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/25 group-hover:bg-white/40 transition-colors rounded-sm" />
                                         )}
                                     </div>
                                 );
