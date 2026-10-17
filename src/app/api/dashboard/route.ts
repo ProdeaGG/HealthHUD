@@ -93,8 +93,9 @@ export async function GET() {
         : 0;
     const dailyAvgDifference = thisWeekStepsAvg - lastWeekStepsAvg;
     
-    const sleepAvg = rollingSevenDayMetrics.length > 0
-        ? rollingSevenDayMetrics.reduce((acc, m) => acc + (m.sleepHours || 0), 0) / rollingSevenDayMetrics.length
+    const recordedSleepMetrics = rollingSevenDayMetrics.filter(m => typeof m.sleepHours === 'number' && m.sleepHours > 0);
+    const sleepAvg = recordedSleepMetrics.length > 0
+        ? recordedSleepMetrics.reduce((acc, m) => acc + (m.sleepHours || 0), 0) / recordedSleepMetrics.length
         : 0;
 
     // Calculate 7-Day Weight Rolling Average

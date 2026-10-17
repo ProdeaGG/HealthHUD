@@ -646,19 +646,19 @@ export default function Dashboard() {
             {(() => {
                 const sleepList = data.recovery.sleepData || [];
                 const avgNum = parseFloat(data.recovery.sevenDayAvg) || 0;
-                const maxScale = Math.max(10, ...sleepList.map((d: any) => d.hours || 0), avgNum);
+                const maxScale = Math.max(8, ...sleepList.map((d: any) => (d.hours || 0) * 1.15), avgNum * 1.15);
 
                 return (
                     <div className="mt-auto pt-1 relative">
                         {/* The Chart bounds */}
-                        <div className="relative h-20 lg:h-24 px-1 lg:px-2 border-b-2 border-white/40 flex justify-between items-stretch space-x-1 lg:space-x-2">
-                            {/* 7D Average Line spanning across all columns */}
+                        <div className="relative h-28 lg:h-32 px-1 lg:px-2 border-b-2 border-white/40 flex justify-between items-stretch space-x-1 lg:space-x-2">
+                            {/* 7D Average Line spanning across all columns (h-0 ensures border-t-2 sits at the exact percentage height) */}
                             {avgNum > 0 && (
                                 <div 
-                                    className="absolute left-0 right-0 border-t-2 border-dashed border-white/80 z-20 flex items-center pointer-events-none transition-all duration-300" 
+                                    className="absolute left-0 right-0 h-0 border-t-2 border-dashed border-white/90 z-20 pointer-events-none transition-all duration-300" 
                                     style={{ bottom: `${(avgNum / maxScale) * 100}%` }}
                                 >
-                                    <span className="text-[9px] font-black text-white bg-black/85 border border-white/50 px-1.5 py-0.5 rounded -translate-y-1/2 ml-1 shadow-md whitespace-nowrap">
+                                    <span className="absolute left-1 top-0 -translate-y-1/2 text-[8px] lg:text-[9px] leading-none font-black text-white bg-green-950/95 border border-white/75 px-1.5 py-0.5 rounded shadow-md whitespace-nowrap">
                                         AVG: {avgNum.toFixed(1)} HRS
                                     </span>
                                 </div>

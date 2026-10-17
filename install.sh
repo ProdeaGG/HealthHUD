@@ -1,22 +1,22 @@
 #!/bin/bash
 set -e
 
-VERSION="v1.11.3"
+VERSION="v1.11.4"
 
 echo "====================================================="
 echo "  HealthHUD Installer & Updater - $VERSION"
 echo "====================================================="
 echo ""
 echo "📋 Patch Notes ($VERSION):"
-echo "  • VITALS VERTICAL BUDGET & CUTOFF FIX:"
-echo "    - Tightened Vitals padding, hero weight typography, sparkline height,"
-echo "      and bottom step stat margins to guarantee zero clipping by the"
-echo "      desktop center divider bar on all screen resolutions and Windows scale factors."
-echo "  • SLEEP CHART 7D AVERAGE BISECTION & BAR SYNCHRONIZATION:"
-echo "    - Shifted sleep columns and bar elements to absolute baseline positioning."
-echo "    - Bars and the 7D average dashed line now share the exact same height coordinate system:"
-echo "      nights with sleep above average cleanly rise above the average line,"
-echo "      and nights below average sit beneath the average line."
+echo "  • SLEEP 7D AVERAGE LINE ZERO-HEIGHT FIX:"
+echo "    - Fixed CSS layout offset where the 'AVG: X.X HRS' pill badge inside the"
+echo "      average line container gave the div a ~25px height, pushing its top"
+echo "      border (border-t-2) 25px higher than the true percentage coordinate."
+echo "    - Made the average line container zero-height (h-0) with an absolutely"
+echo "      positioned badge so the dashed line bisects the bars at the exact"
+echo "      mathematical 7D average height."
+echo "    - Filtered 7D sleep average calculation to only count days with recorded"
+echo "      sleep (> 0 hrs) so unlogged days do not skew the average."
 echo "====================================================="
 echo ""
 
